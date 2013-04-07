@@ -1,0 +1,8 @@
+# Vim junk
+*~
+*.swp
+
+# Android junk
+bin/
+gen/
+obj/
