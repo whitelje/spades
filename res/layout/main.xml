@@ -1,13 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<TabHost
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:orientation="vertical"
+	android:id="@android:id/tabhost"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent">
-	<TextView
-		android:id="@+id/textview"
+	<LinearLayout
+		android:orientation="vertical"
 		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:text="hello, spades" />
-</LinearLayout>
-
+		android:layout_height="fill_parent">
+		<TabWidget
+			android:id="@android:id/tabs"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content" />
+		<FrameLayout
+			android:id="@android:id/tabcontent"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent">
+			<LinearLayout
+				android:id="@+id/chat"
+				android:orientation="vertical"
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent">
+				<ScrollView
+					android:id="@+id/log_scroll"
+					android:layout_width="fill_parent"
+					android:layout_height="0dp"
+					android:layout_weight="1"
+					android:scrollbars="vertical"
+					android:fillViewport="true">
+					<TextView
+						android:id="@+id/log"
+						android:layout_width="fill_parent"
+						android:layout_height="fill_parent" />
+				</ScrollView>
+				<LinearLayout
+					android:orientation="horizontal"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content">
+					<EditText
+						android:id="@+id/input"
+						android:layout_width="wrap_content"
+						android:layout_height="fill_parent"
+						android:layout_weight="1" />
+					<Button
+						android:id="@+id/send"
+						android:layout_width="wrap_content"
+						android:layout_height="fill_parent"
+						android:onClick="onSend"
+						android:text="Send" />
+				</LinearLayout>
+			</LinearLayout>
+			<TextView
+				android:id="@+id/spades"
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent"
+				android:text="Spades" />
+			<ScrollView
+				android:id="@+id/debug_scroll"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:scrollbars="vertical"
+				android:fillViewport="true">
+				<TextView
+					android:id="@+id/debug"
+					android:layout_width="fill_parent"
+					android:layout_height="fill_parent" />
+			</ScrollView>
+		</FrameLayout>
+	</LinearLayout>
+</TabHost>
+<!-- vim: set ts=4 sw=4 sts=4: -->

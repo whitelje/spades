@@ -3,8 +3,6 @@ package org.pileus.spades;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 
-import android.util.Log;
-
 public class Client
 {
 	/* Private data */
@@ -19,6 +17,58 @@ public class Client
 
 	/* Public data */
 	public  boolean        running  = true;
+
+	/* Public Methods */
+	public Client(String server, String nickname, String channel,
+			String username, String hostname)
+	{
+		this.server   = server;
+		this.nickname = nickname;
+		this.channel  = channel;
+		this.username = username;
+		this.hostname = hostname;
+		Os.debug("Client: create");
+	}
+
+	public Client(String server, String nickname, String channel)
+	{
+		this(server, nickname, channel, "user", "localhost");
+	}
+
+	public void connect(BufferedReader input, PrintWriter output)
+	{
+		this.input  = input;
+		this.output = output;
+		Os.debug("Client: connect");
+		putline("USER "+username+" "+hostname+" "+server+" :"+nickname);
+		putline("NICK "+nickname);
+	}
+
+	public Message send(String txt)
+	{
+		Message msg = new Message(channel, nickname, txt);
+		putline(msg.line);
+		return msg;
+	}
+
+	public Message recv()
+	{
+		try {
+			String line = getline();
+			if (line == null) {
+				this.running = false;
+				return null;
+			} else {
+				Message msg = new Message(line);
+				process(msg);
+				return msg;
+			}
+		} catch (Exception e) {
+			Os.debug("Client: error in recv", e);
+			this.running = false;
+			return null;
+		}
+	}
 
 	/* Private methods */
 	private void process(Message msg)
@@ -36,10 +86,11 @@ public class Client
 	{
 		try {
 			String line = input.readLine();
-			Log.d("Spades", "> " + line);
+			if (line != null)
+				Os.debug("> " + line);
 			return line;
 		} catch (Exception e) {
-			Log.d("Spades", "Error reading line", e);
+			Os.debug("Client: error reading line", e);
 			this.running = false;
 			return "";
 		}
@@ -48,57 +99,12 @@ public class Client
 	private void putline(String line)
 	{
 		try {
-			Log.d("Spades", "< " + line);
+			Os.debug("< " + line);
 			output.println(line);
 			output.flush();
 		} catch (Exception e) {
-			Log.d("Spades", "Error writing line", e);
+			Os.debug("Client: error writing line", e);
 			this.running = false;
-		}
-	}
-
-	/* Public Methods */
-	public Client(String server, String nickname, String channel,
-			String username, String hostname)
-	{
-		this.server   = server;
-		this.nickname = nickname;
-		this.channel  = channel;
-		this.username = username;
-		this.hostname = hostname;
-		Log.d("Spades", "Client create");
-	}
-
-	public Client(String server, String nickname, String channel)
-	{
-		this(server, nickname, channel, "user", "localhost");
-		Log.d("Spades", "Client create");
-	}
-
-	public void connect(BufferedReader input, PrintWriter output)
-	{
-		this.input  = input;
-		this.output = output;
-		Log.d("Spades", "Client connect");
-		putline("USER "+username+" "+hostname+" "+server+" :"+nickname);
-		putline("NICK "+nickname);
-	}
-
-	public void send(String txt)
-	{
-	}
-
-	public Message recv()
-	{
-		try {
-			String line = getline();
-			Message msg = new Message(line);
-			process(msg);
-			return msg;
-		} catch (Exception e) {
-			Log.d("Spades", "Error in recv", e);
-			this.running = false;
-			return null;
 		}
 	}
 }

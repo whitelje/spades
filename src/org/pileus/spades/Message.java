@@ -3,13 +3,11 @@ package org.pileus.spades;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-import android.util.Log;
-
 public class Message
 {
 	/* Constnats */
 	private final  String  reMsg  = "(:([^ ]+) +)?(([A-Z0-9]+) +)(([^ ]+) +)?(([^: ]+) +)?(:(.*))";
-	private final  String  reFrom = "([^! ]+)!";
+	private final  String  reFrom = "([^! ]+)!.*";
 	private final  String  reTo   = "(([^ :,]*)[:,] *)?(.*)";
 
 	private static Pattern ptMsg  = null;
@@ -36,9 +34,17 @@ public class Message
 	}
 
 	/* Public Methods */
+	public Message(String dst, String from, String msg)
+	{
+		this.cmd  = "PRIVMSG";
+		this.dst  = dst;
+		this.from = from;
+		this.msg  = msg;
+		this.line = this.cmd + " " + this.dst + " :" + this.msg;
+	}
+
 	public Message(String line)
 	{
-
 		if (ptMsg  == null) ptMsg  = Pattern.compile(reMsg);
 		if (ptFrom == null) ptFrom = Pattern.compile(reFrom);
 		if (ptTo   == null) ptTo   = Pattern.compile(reTo);
@@ -69,20 +75,27 @@ public class Message
 			this.txt  = notnull(this.msg);
 		else
 			this.txt  = notnull(mrTo.group(3));
+
+		this.debug();
 	}
 
 	public void debug()
 	{
-		Log.d("Spades", "---------------------");
-		Log.d("Spades", "line = [" + line + "]");
-		Log.d("Spades", "src  = " + this.src);
-		Log.d("Spades", "cmd  = " + this.cmd);
-		Log.d("Spades", "dst  = " + this.dst);
-		Log.d("Spades", "arg  = " + this.arg);
-		Log.d("Spades", "msg  = " + this.msg);
-		Log.d("Spades", "from = " + this.from);
-		Log.d("Spades", "to   = " + this.to);
-		Log.d("Spades", "txt  = " + this.txt);
-		Log.d("Spades", "---------------------");
+		Os.debug("---------------------");
+		Os.debug("line = [" + line + "]");
+		Os.debug("src  = " + this.src);
+		Os.debug("cmd  = " + this.cmd);
+		Os.debug("dst  = " + this.dst);
+		Os.debug("arg  = " + this.arg);
+		Os.debug("msg  = " + this.msg);
+		Os.debug("from = " + this.from);
+		Os.debug("to   = " + this.to);
+		Os.debug("txt  = " + this.txt);
+		Os.debug("---------------------");
+	}
+
+	public String toString()
+	{
+		return this.from + ": " + this.txt;
 	}
 }

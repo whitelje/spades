@@ -1,0 +1,72 @@
+/* Android Glue */
+Main: extends Activity           // UI Code:
+  Handler   handler;	         //   Commands sent to Main by UI
+  Messenger messenger;	         //   though handler/messenger
+
+  bool onStart(); ...            //   Activity methods
+
+  void onButtonClick(); ...      //   Widget callbacks
+
+  void onRegister(task);         //   Set Task object on startup
+  void onConnect(void);          //   IRC connected
+  void onDisconnect(void);       //   IRC disconnected
+  void onMessage(msg);           //   IRC message received
+
+Task: extends Service            // IRC connection as service:
+  bool onCreate(); ...           //   Service methods
+
+  void run();                    //   IRC Client Thread entry
+
+  Message send(String txt);      //   Send IRC message
+
+Util:                            // Misc functions
+  void debug(String str);        //   Print to debug log
+
+/* IRC Client Protocol */
+Client:                          // IRC Client:
+  void connect(srv, nick, chan); //   Connect to server
+
+  Message send(String msg)       //   Send text as message
+  Message recv(void)             //   Blocking recv message
+
+Message:                         // IRC Message:
+
+/* Spades game */
+Spades:
+  Valid setHand(Set<Card> hand);
+  Valid setPile(Set<Card> pile);
+  Valid canPlay(Person who, Card card);
+
+/* OpenGL Graphics */
+Cards:
+  void addBidListener(BidListener listener);
+  void addPassListener(PassListener listener);
+  void addLookListener(LookListener listener);
+  void addPlayListener(PlayListener listener);
+  void addTurnListener(TurnListener listener);
+
+  void bid(Person who, int bid);
+  void pass(Card card);
+  void show(Set<Card> hand);
+  void play(Person who, Card card);
+
+/* Listeners */
+void MsgListener(Message msg);
+
+Valid BidListener(int bid);
+Valid PassListener(Card card);
+Valid LookListener(void);
+Valid PlayListener(Card card);
+Valid TurnListener(void);
+
+/* Types */
+Card:
+
+Team:
+  - Player a;
+  - Player b;
+
+Person:
+  - nickname
+
+// vim: ft=java
