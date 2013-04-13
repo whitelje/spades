@@ -66,6 +66,8 @@ public class Client
 		}
 
 		Os.debug("Client: connected");
+		if (this.usesasl)
+			this.raw("CAP REQ :sasl");
 		this.raw("USER "+this.username+" "+this.hostname+" "+this.server+" :"+this.nickname);
 		this.raw("NICK "+this.nickname);
 
@@ -112,6 +114,8 @@ public class Client
 			Os.debug("> " + line);
 			Message msg = new Message(line);
 			this.process(msg);
+			if (this.usesasl)
+				this.dosasl(msg);
 			return msg;
 		} catch (SocketException e) {
 			this.ready = false;
@@ -137,6 +141,39 @@ public class Client
 		}
 		if (msg.cmd.equals("PING")) {
 			this.raw("PING " + msg.msg);
+		}
+	}
+
+	private void dosasl(Message msg)
+	{
+		switch (msg.type) {
+			case CAP:
+				if (msg.msg.equals("sasl") && msg.arg.equals("ACK")) {
+					Os.debug("Client: sasl - starting auth");
+					this.raw("AUTHENTICATE PLAIN");
+				} else {
+					Os.debug("Client: sasl - Server does not support sasl");
+				}
+				break;
+			case AUTH:
+				if (msg.arg.equals("+")) {
+					Os.debug("Client: sasl - performin authentication");
+					this.raw("AUTHENTICATE " + Os.base64(
+								this.authname + "\0" +
+								this.authname + "\0" +
+								this.password));
+				} else {
+					Os.debug("Client: sasl - unexpected authenticate response");
+				}
+				break;
+			case AUTHOK:
+				Os.debug("Client: SASL Auth Successful");
+				this.raw("CAP END");
+				break;
+			case AUTHFAIL:
+				Os.debug("Client: SASL Auth Failed");
+				this.raw("CAP END");
+				break;
 		}
 	}
 }

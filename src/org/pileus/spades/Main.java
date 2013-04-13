@@ -47,6 +47,12 @@ public class Main extends Activity
 	private ScrollView   lscroll;
 	private ScrollView   dscroll;
 
+	/* Private helper methods */
+	private void notice(String text)
+	{
+		this.log.append("*** " + text + "\n");
+	}
+
 	/* Private handler methods */
 	private void onRegister(Object obj)
 	{
@@ -69,13 +75,22 @@ public class Main extends Activity
 				break;
 			case TOPIC:
 				if (!msg.txt.equals(this.topic))
-					this.log.append("** Topic for " + msg.arg + ": " + msg.txt + " **\n");
+					this.notice("Topic for " + msg.arg + ": " + msg.txt);
 				this.topic = msg.txt;
 				break;
 			case NAMES:
 				if (!msg.txt.equals(this.names))
-					this.log.append("** Users in " + msg.arg + ": " + msg.txt + " **\n");
+					this.notice("Users in " + msg.arg + ": " + msg.txt);
 				this.names = msg.txt;
+				break;
+			case ERROR:
+				this.notice("Error: " + msg.txt);
+				break;
+			case AUTHOK:
+				this.notice("Authentication succeeded: " + msg.txt);
+				break;
+			case AUTHFAIL:
+				this.notice("Authentication failed: " + msg.txt);
 				break;
 		}
 		this.lscroll.smoothScrollTo(0, this.log.getBottom());
@@ -84,7 +99,7 @@ public class Main extends Activity
 	private void onNotify(String text)
 	{
 		Os.debug("Main: onNotify - " + text);
-		this.log.append("** " + text + " **\n");
+		this.notice(text);
 		this.toast.setText(text);
 		this.toast.show();
 	}

@@ -39,7 +39,7 @@
 		<EditTextPreference
 			android:key="pref_authname"
 			android:summary="Username for SASL Authentication"
-			android:title="Nickname"
+			android:title="Authname"
 			android:defaultValue="" />
 		<EditTextPreference
 			android:key="pref_password"

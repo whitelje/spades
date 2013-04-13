@@ -11,10 +11,15 @@ public class Message
 		PRIVMSG,
 		TOPIC,
 		NAMES,
+		ERROR,
+		CAP,
+		AUTH,
+		AUTHOK,
+		AUTHFAIL,
 	};
 
 	/* Constnats */
-	private final  String  reMsg  = "(:([^ ]+) +)?(([A-Z0-9]+) +)(([^ ]+)[= ]+)?(([^: ]+) +)?(:(.*))";
+	private final  String  reMsg  = "(:([^ ]+) +)?(([A-Z0-9]+) +)(([^ ]+)[= ]+)?(([^: ]+) *)?(:(.*))?";
 	private final  String  reFrom = "([^! ]+)!.*";
 	private final  String  reTo   = "(([^ :,]*)[:,] *)?(.*)";
 
@@ -90,9 +95,17 @@ public class Message
 			this.txt  = notnull(mrTo.group(3));
 
 		// Parse commands names
-		if (this.cmd.equals("PRIVMSG")) this.type = Type.PRIVMSG;
-		if (this.cmd.equals("332"))     this.type = Type.TOPIC;
-		if (this.cmd.equals("353"))     this.type = Type.NAMES;
+		if      (this.cmd.equals("PRIVMSG"))       this.type = Type.PRIVMSG;
+		else if (this.cmd.equals("332"))           this.type = Type.TOPIC;
+		else if (this.cmd.equals("353"))           this.type = Type.NAMES;
+		else if (this.cmd.equals("ERROR"))         this.type = Type.ERROR;
+		else if (this.cmd.equals("CAP"))           this.type = Type.CAP;
+		else if (this.cmd.equals("AUTHENTICATE"))  this.type = Type.AUTH;
+		else if (this.cmd.equals("903"))           this.type = Type.AUTHOK;
+		else if (this.cmd.equals("904"))           this.type = Type.AUTHFAIL;
+		else if (this.cmd.equals("905"))           this.type = Type.AUTHFAIL;
+		else if (this.cmd.equals("906"))           this.type = Type.AUTHFAIL;
+		else if (this.cmd.equals("907"))           this.type = Type.AUTHFAIL;
 	}
 
 	public void debug()
