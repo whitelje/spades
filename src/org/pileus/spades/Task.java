@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Messenger;
-import android.widget.Toast;
 
 public class Task extends Service implements Runnable
 {
@@ -17,6 +16,7 @@ public class Task extends Service implements Runnable
 	public static final int MESSAGE    = 1;
 	public static final int CONNECT    = 2;
 	public static final int DISCONNECT = 3;
+	public static final int NOTIFY     = 4;
 
 	/* Configuration */
 	private String    server    = "irc.freenode.net";
@@ -27,7 +27,6 @@ public class Task extends Service implements Runnable
 	private Messenger messenger = null;
 	private Thread    thread    = null;
 	private Client    client    = null;
-	private Toast     toast     = null;
 
 	/* Private methods */
 	private void command(int cmd, Object value)
@@ -44,14 +43,10 @@ public class Task extends Service implements Runnable
 
 	private void notify(String text, int icon)
 	{
-		// Log
-		Os.debug("Task: notify - " + text);
+		// Notify Main
+		this.command(NOTIFY, text);
 
-		// Toast
-		this.toast.setText(text);
-		this.toast.show();
-
-		// Notify
+		// Notification bar
 		Notification  note   = new Notification(icon, null, 0);
 		Intent        intent = new Intent(this, Main.class);
 		PendingIntent pend   = PendingIntent.getActivity(this, 0, intent, 0);
@@ -76,9 +71,6 @@ public class Task extends Service implements Runnable
 	public void run()
 	{
 		Os.debug("Task: thread run");
-
-		// Android Toast setup
-		Looper.prepare();
 
 		// Setup notification bar
 		this.notify("Connecting..", android.R.drawable.presence_invisible);
@@ -133,10 +125,6 @@ public class Task extends Service implements Runnable
 	{
 		Os.debug("Task: onCreate");
 		super.onCreate();
-
-		// Setup toast
-		Context context = this.getApplicationContext();
-		this.toast = Toast.makeText(context, "", Toast.LENGTH_SHORT);
 
 		// Create the client
 		this.client = new Client();

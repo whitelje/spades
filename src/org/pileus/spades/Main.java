@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.ScrollView;
 import android.widget.TabHost;
 import android.widget.TabWidget;
+import android.widget.Toast;
 
 public class Main extends Activity
 {
@@ -26,6 +27,7 @@ public class Main extends Activity
 
 	/* Private data */
 	private Task         task;
+	private Toast        toast;
 	private boolean      ready;
 
 	/* Widgets */
@@ -41,14 +43,14 @@ public class Main extends Activity
 	private ScrollView   lscroll;
 	private ScrollView   dscroll;
 
-	/* Private methods */
-	public void onRegister(Object obj)
+	/* Private handler methods */
+	private void onRegister(Object obj)
 	{
 		Os.debug("Main: onRegister");
 		this.task = (Task)obj;
 	}
 
-	public void onMessage(Object obj)
+	private void onMessage(Object obj)
 	{
 		Message msg = (Message)obj;
 
@@ -61,6 +63,14 @@ public class Main extends Activity
 		}
 	}
 
+	private void onNotify(String text)
+	{
+		Os.debug("Main: onNotify - " + text);
+		this.toast.setText(text);
+		this.toast.show();
+	}
+
+	/* Private service methods */
 	private void startService()
 	{
 		Os.debug("Main: startService");
@@ -96,6 +106,9 @@ public class Main extends Activity
 
 			// Setup main layout
 			this.setContentView(R.layout.main);
+
+			// Setup toast
+			this.toast     = Toast.makeText(this, "", Toast.LENGTH_SHORT);
 
 			// Setup communication
 			this.handler   = new MainHandler();
@@ -229,6 +242,9 @@ public class Main extends Activity
 					break;
 				case Task.DISCONNECT:
 					Main.this.ready = false;
+					break;
+				case Task.NOTIFY:
+					Main.this.onNotify((String)msg.obj);
 					break;
 				default:
 					Os.debug("Main: unknown message - " + msg.what);
