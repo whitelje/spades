@@ -18,6 +18,7 @@ public class Client
 
 	/* Public data */
 	public  boolean        ready    = false;
+	public  String         name     = "";
 
        	/* Connection data */
 	private Socket         socket;
@@ -50,6 +51,7 @@ public class Client
 	{
 		this.nickname = nickname;
 		this.channel  = channel;
+		this.name     = nickname;
 	}
 
 	public boolean connect()
@@ -68,8 +70,8 @@ public class Client
 		Os.debug("Client: connected");
 		if (this.usesasl)
 			this.raw("CAP REQ :sasl");
-		this.raw("USER "+this.username+" "+this.hostname+" "+this.server+" :"+this.nickname);
-		this.raw("NICK "+this.nickname);
+		this.raw("USER "+this.username+" "+this.hostname+" "+this.server+" :"+this.name);
+		this.raw("NICK "+this.name);
 
 		return true;
 	}
@@ -100,7 +102,7 @@ public class Client
 
 	public Message send(String txt)
 	{
-		Message msg  = new Message(this.channel, this.nickname, txt);
+		Message msg = new Message(this.channel, this.name, txt);
 		this.raw(msg.line);
 		return msg;
 	}
@@ -112,7 +114,7 @@ public class Client
 			if (line == null)
 				return null;
 			Os.debug("> " + line);
-			Message msg = new Message(line);
+			Message msg = new Message(line, this.name);
 			this.process(msg);
 			if (this.usesasl)
 				this.dosasl(msg);
@@ -136,8 +138,9 @@ public class Client
 			this.ready = true;
 		}
 		if (msg.cmd.equals("433")) {
-			this.raw("NICK "+this.nickname+this.mangle);
-			this.mangle++;
+			this.name   = this.nickname + this.mangle;
+			this.mangle = this.mangle + 11;
+			this.raw("NICK "  + this.name);
 		}
 		if (msg.cmd.equals("PING")) {
 			this.raw("PING " + msg.msg);

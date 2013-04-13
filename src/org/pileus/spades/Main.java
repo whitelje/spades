@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Messenger;
+import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
+import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,15 +21,11 @@ import android.widget.TabWidget;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import android.preference.PreferenceActivity;
-
 public class Main extends Activity
 {
-	/* Static data */
+	/* Private data */
 	private Handler      handler;
 	private Messenger    messenger;
-
-	/* Private data */
 	private Task         task;
 	private Toast        toast;
 	private boolean      ready;
@@ -50,7 +48,67 @@ public class Main extends Activity
 	/* Private helper methods */
 	private void notice(String text)
 	{
-		this.log.append("*** " + text + "\n");
+		this.log.append(Html.fromHtml("<b>*** " + text + "</b><br />"));
+	}
+
+	private void display(Message msg)
+	{
+		String when = DateFormat.format("hh:mm:ss", msg.time).toString();
+		String from = String.format("<font color=\"#ff88ff\">%s</font>", msg.from);
+		String text = msg.msg;
+		String fmt  = null;
+		Os.debug("msg: " + Os.base64(msg.msg));
+
+		// Do IRC Colors
+		//   - This doesn't actually work
+		String fg   = "<font color=\"<$1>\">";
+		String bg   = "<font bgcolor=\"<$2>\">";
+		text = text
+			.replaceAll("&", "&amp;")
+			.replaceAll("<", "&lt;")
+			.replaceAll(">", "&gt;");
+		text = text
+			.replaceAll("\\002", "<b>")  // bold
+			.replaceAll("\\011", "<i>")  // italic
+			.replaceAll("\\025", "<u>")  // underline
+			.replaceAll("\\022", "<b>"); // reverse
+		text = text
+			.replaceAll("\\003(\\d+),(\\d+)", fg + bg) // color
+			.replaceAll("\\013(\\d+),(\\d+)", fg + bg) // color
+			.replaceAll("\\003(\\d+)", fg)             // color
+			.replaceAll("\\013(\\d+)", fg);            // color
+		text = text
+			.replaceAll("<0?0>", "#000000")  // White
+			.replaceAll("<0?1>", "#000000")  // Black
+			.replaceAll("<0?2>", "#000080")  // Navy Blue
+			.replaceAll("<0?3>", "#008000")  // Green
+			.replaceAll("<0?4>", "#FF0000")  // Red
+			.replaceAll("<0?5>", "#804040")  // Brown
+			.replaceAll("<0?6>", "#8000FF")  // Purple
+			.replaceAll("<0?7>", "#808000")  // Olive
+			.replaceAll("<0?8>", "#FFFF00")  // Yellow
+			.replaceAll("<0?9>", "#00FF00")  // Lime Green
+			.replaceAll("<10>",  "#008080")  // Teal
+			.replaceAll("<11>",  "#00FFFF")  // Aqua Light
+			.replaceAll("<12>",  "#0000FF")  // Royal Blue
+			.replaceAll("<13>",  "#FF00FF")  // Hot Pink
+			.replaceAll("<14>",  "#808080")  // Dark Gray
+			.replaceAll("<15>",  "#C0C0C0"); // Light Gray
+
+		// Message formatting
+		switch (msg.how) {
+			case DIRECT:
+			case MENTION:
+			case PRIVMSG:
+				fmt  = "<b>(%s) %s: %s</b>";
+				break;
+			default:
+				fmt  = "(%s) %s: %s";
+				break;
+		}
+
+		String html = String.format(fmt, when, from, text);
+		this.log.append(Html.fromHtml(html + "<br />"));
 	}
 
 	/* Private handler methods */
@@ -71,7 +129,7 @@ public class Main extends Activity
 		// Chat
 		switch (msg.type) {
 			case PRIVMSG:
-				this.log.append(msg.from + ": " + msg.msg + "\n");
+				this.display(msg);
 				break;
 			case TOPIC:
 				if (!msg.txt.equals(this.topic))
