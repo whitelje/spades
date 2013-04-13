@@ -17,6 +17,8 @@ public class Client
 	private BufferedReader input    = null;
 	private PrintWriter    output   = null;
 
+	private int            mangle   = 0;
+
 	/* Public data */
 	public  boolean        ready    = false;
 
@@ -115,6 +117,10 @@ public class Client
 			this.raw("JOIN "  + this.channel);
 			this.raw("TOPIC " + this.channel);
 			this.ready = true;
+		}
+		if (msg.cmd.equals("433")) {
+			this.raw("NICK "+this.nickname+this.mangle);
+			this.mangle++;
 		}
 		if (msg.cmd.equals("PING")) {
 			this.raw("PING " + msg.msg);
