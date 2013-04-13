@@ -5,9 +5,11 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Messenger;
+import android.preference.PreferenceManager;
 
 public class Task extends Service implements Runnable
 {
@@ -18,15 +20,11 @@ public class Task extends Service implements Runnable
 	public static final int DISCONNECT = 3;
 	public static final int NOTIFY     = 4;
 
-	/* Configuration */
-	private String    server    = "irc.freenode.net";
-	private String    nickname  = "andydroid";
-	private String    channel   = "#rhnoise";
-
 	/* Private data */
-	private Messenger messenger = null;
-	private Thread    thread    = null;
-	private Client    client    = null;
+	private SharedPreferences prefs;
+	private Messenger         messenger;
+	private Thread            thread;
+	private Client            client;
 
 	/* Private methods */
 	private void command(int cmd, Object value)
@@ -75,8 +73,22 @@ public class Task extends Service implements Runnable
 		// Setup notification bar
 		this.notify("Connecting..", android.R.drawable.presence_invisible);
 
+		// Grab preferences
+		String  server   = this.prefs.getString ("pref_server",   this.client.server);
+		String  port     = this.prefs.getString ("pref_port",     this.client.port + "");
+		String  nickname = this.prefs.getString ("pref_nickname", this.client.nickname);
+		String  channel  = this.prefs.getString ("pref_channel",  this.client.channel);
+		boolean usesasl  = this.prefs.getBoolean("pref_usesasl",  this.client.usesasl);
+		String  authname = this.prefs.getString ("pref_authname", this.client.authname);
+		String  password = this.prefs.getString ("pref_password", this.client.password);
+
+		// Update client settings
+		this.client.setServer(server, Integer.parseInt(port));
+		this.client.setUser(nickname, channel);
+		this.client.setAuth(usesasl, authname, password);
+
 		// Start connecting
-		if (!this.client.connect(server, nickname, channel)) {
+		if (!this.client.connect()) {
 			this.command(DISCONNECT, null);
 			this.notify("Unable to connect", android.R.drawable.presence_offline);
 			this.thread = null;
@@ -126,10 +138,10 @@ public class Task extends Service implements Runnable
 		Os.debug("Task: onCreate");
 		super.onCreate();
 
-		// Create the client
 		this.client = new Client();
+		this.prefs  = PreferenceManager.getDefaultSharedPreferences(this);
 	}
-        
+
 	@Override
 	public void onDestroy()
 	{
@@ -141,7 +153,7 @@ public class Task extends Service implements Runnable
 			Os.debug("Task: error stopping service", e);
 		}
 	}
-        
+
 	@Override
 	public void onStart(Intent intent, int startId)
 	{

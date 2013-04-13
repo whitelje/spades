@@ -6,18 +6,20 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Messenger;
 import android.text.method.ScrollingMovementMethod;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.ScrollView;
 import android.widget.TabHost;
 import android.widget.TabWidget;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import android.preference.PreferenceActivity;
 
 public class Main extends Activity
 {
@@ -233,6 +235,9 @@ public class Main extends Activity
 			case R.id.disconnect:
 				this.stopService();
 				return true;
+			case R.id.settings:
+				this.startActivity(new Intent(this, Prefs.class));
+				return true;
 			case R.id.exit:
 				this.stopService();
 				this.finish();
@@ -270,4 +275,3 @@ public class Main extends Activity
 		}
 	}
 }
-

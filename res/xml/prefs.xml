@@ -1,0 +1,50 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory
+		android:title="Connection settings"
+		android:key="pref_conn">
+		<EditTextPreference
+			android:key="pref_server"
+			android:summary="IRC Server to Hostname"
+			android:title="Server"
+			android:defaultValue="irc.freenode.net" />
+		<EditTextPreference
+			android:key="pref_port"
+			android:summary="TCP Port for IRC on Server"
+			android:title="Port"
+			android:numeric="integer"
+			android:defaultValue="6667" />
+	</PreferenceCategory>
+	<PreferenceCategory
+		android:title="User settings"
+		android:key="pref_user">
+		<EditTextPreference
+			android:key="pref_nickname"
+			android:summary="Prefered IRC Nickname"
+			android:title="Nickname"
+			android:defaultValue="andydroid" />
+		<EditTextPreference
+			android:key="pref_channel"
+			android:summary="IRC Channel to Join"
+			android:title="Channel"
+			android:defaultValue="#rhnoise" />
+	</PreferenceCategory>
+	<PreferenceCategory
+		android:title="Authentication settings"
+		android:key="pref_user">
+		<CheckBoxPreference
+			android:key="pref_usesasl"
+			android:summary="Use SASL Plain for Authentication"
+			android:title="Use SASL"
+			android:defaultValue="false" />
+		<EditTextPreference
+			android:key="pref_authname"
+			android:summary="Username for SASL Authentication"
+			android:title="Nickname"
+			android:defaultValue="" />
+		<EditTextPreference
+			android:key="pref_password"
+			android:summary="Password for SASL Authentication"
+			android:title="Password"
+			android:defaultValue="" />
+	</PreferenceCategory>
+</PreferenceScreen>

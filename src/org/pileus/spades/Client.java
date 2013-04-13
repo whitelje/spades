@@ -5,43 +5,56 @@ import java.net.*;
 
 public class Client
 {
-	/* Private data */
-	private String         server   = null;
-	private int            port     = 6667;
-	private String         nickname = null;
-	private String         channel  = null;
-	private String         username = null;
-	private String         hostname = null;
-
-	private Socket         socket   = null;
-	private BufferedReader input    = null;
-	private PrintWriter    output   = null;
-
-	private int            mangle   = 0;
+	/* Preference data */
+	public  String         server   = "irc.freenode.net";
+	public  int            port     = 6667;
+	public  String         nickname = "SpadeGuest";
+	public  String         channel  = "#rhnoise";
+	public  boolean        usesasl  = false;
+	public  String         authname = "";
+	public  String         password = "";
+	public  String         username = "user";
+	public  String         hostname = "localhost";
 
 	/* Public data */
 	public  boolean        ready    = false;
 
+       	/* Connection data */
+	private Socket         socket;
+	private BufferedReader input;
+	private PrintWriter    output;
+
+	/* Private data */
+	private int            mangle;
+
 	/* Public Methods */
-	public Client(String username, String hostname)
+	public Client()
 	{
-		this.username = username;
-		this.hostname = hostname;
 		Os.debug("Client: create");
 	}
 
-	public Client()
+	public void setServer(String server, int port)
 	{
-		this("user", "localhost");
+		this.server = server;
+		this.port   = port;
 	}
 
-	public boolean connect(String server, String nickname, String channel)
+	public void setAuth(boolean usesasl, String authname, String password)
 	{
-		Os.debug("Client: connect");
+		this.usesasl  = usesasl;
+		this.authname = authname;
+		this.password = password;
+	}
 
-		this.server   = server;
+	public void setUser(String nickname, String channel)
+	{
 		this.nickname = nickname;
 		this.channel  = channel;
+	}
+
+	public boolean connect()
+	{
+		Os.debug("Client: connect");
 
 		try {
 			this.socket = new Socket(this.server, this.port);
