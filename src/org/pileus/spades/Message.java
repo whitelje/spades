@@ -75,8 +75,6 @@ public class Message
 			this.txt  = notnull(this.msg);
 		else
 			this.txt  = notnull(mrTo.group(3));
-
-		this.debug();
 	}
 
 	public void debug()

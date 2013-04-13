@@ -7,6 +7,9 @@ import android.os.Handler;
 import android.os.Messenger;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -126,10 +129,6 @@ public class Main extends Activity
 					.newTabSpec("debug")
 					.setIndicator("Debug")
 					.setContent(R.id.debug));
-
-			// Start IRC service
-			this.startService();
-
 		} catch (Exception e) {
 			Os.debug("Error setting content view", e);
 			return;
@@ -176,6 +175,32 @@ public class Main extends Activity
 	{
 		super.onDestroy();
 		Os.debug("Main: onDestroy");
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
+		switch (item.getItemId()) {
+			case R.id.connect:
+				this.startService();
+				return true;
+			case R.id.disconnect:
+				this.stopService();
+				return true;
+			case R.id.help:
+				Os.debug("Main: Help!");
+				return true;
+			default:
+				return false;
+		}
 	}
 
 	/* Handler class */

@@ -1,71 +1,103 @@
 package org.pileus.spades;
 
-import java.io.BufferedReader;
-import java.io.PrintWriter;
+import java.io.*;
+import java.net.*;
 
 public class Client
 {
 	/* Private data */
 	private String         server   = null;
+	private int            port     = 6667;
 	private String         nickname = null;
 	private String         channel  = null;
 	private String         username = null;
 	private String         hostname = null;
 
+	private Socket         socket   = null;
 	private BufferedReader input    = null;
 	private PrintWriter    output   = null;
 
-	/* Public data */
-	public  boolean        running  = true;
-
 	/* Public Methods */
-	public Client(String server, String nickname, String channel,
-			String username, String hostname)
+	public Client(String username, String hostname)
 	{
-		this.server   = server;
-		this.nickname = nickname;
-		this.channel  = channel;
 		this.username = username;
 		this.hostname = hostname;
 		Os.debug("Client: create");
 	}
 
-	public Client(String server, String nickname, String channel)
+	public Client()
 	{
-		this(server, nickname, channel, "user", "localhost");
+		this("user", "localhost");
 	}
 
-	public void connect(BufferedReader input, PrintWriter output)
+	public boolean connect(String server, String nickname, String channel)
 	{
-		this.input  = input;
-		this.output = output;
 		Os.debug("Client: connect");
-		putline("USER "+username+" "+hostname+" "+server+" :"+nickname);
-		putline("NICK "+nickname);
+
+		this.server   = server;
+		this.nickname = nickname;
+		this.channel  = channel;
+
+		try {
+			socket = new Socket(this.server, this.port);
+			input  = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			output = new PrintWriter(socket.getOutputStream());
+		} catch (Exception e) {
+			Os.debug("Client: failed to create connection: " + e);
+			return false;
+		}
+
+		Os.debug("Client: connected");
+		raw("USER "+username+" "+hostname+" "+server+" :"+nickname);
+		raw("NICK "+nickname);
+
+		return true;
+	}
+
+	public boolean abort()
+	{
+		Os.debug("Client: abort");
+		try {
+			this.socket.close();
+			return true;
+		} catch (Exception e) {
+			Os.debug("Client: error closing socket", e);
+			return false;
+		}
+	}
+
+	public void raw(String line)
+	{
+		try {
+			Os.debug("< " + line);
+			output.println(line);
+			output.flush();
+		} catch (Exception e) {
+			Os.debug("Client: error writing line", e);
+		}
 	}
 
 	public Message send(String txt)
 	{
-		Message msg = new Message(channel, nickname, txt);
-		putline(msg.line);
+		Message msg  = new Message(channel, nickname, txt);
+		raw(msg.line);
 		return msg;
 	}
 
 	public Message recv()
 	{
 		try {
-			String line = getline();
-			if (line == null) {
-				this.running = false;
+			String line = input.readLine();
+			if (line == null)
 				return null;
-			} else {
-				Message msg = new Message(line);
-				process(msg);
-				return msg;
-			}
+			Os.debug("> " + line);
+			Message msg = new Message(line);
+			process(msg);
+			return msg;
+		} catch (SocketException e) {
+			return null;
 		} catch (Exception e) {
 			Os.debug("Client: error in recv", e);
-			this.running = false;
 			return null;
 		}
 	}
@@ -74,37 +106,11 @@ public class Client
 	private void process(Message msg)
 	{
 		if (msg.cmd.equals("001") && msg.msg.matches("Welcome.*")) {
-			putline("JOIN "  + channel);
-			putline("TOPIC " + channel);
+			raw("JOIN "  + channel);
+			raw("TOPIC " + channel);
 		}
 		if (msg.cmd.equals("PING")) {
-			putline("PING " + msg.msg);
-		}
-	}
-
-	private String getline()
-	{
-		try {
-			String line = input.readLine();
-			if (line != null)
-				Os.debug("> " + line);
-			return line;
-		} catch (Exception e) {
-			Os.debug("Client: error reading line", e);
-			this.running = false;
-			return "";
-		}
-	}
-
-	private void putline(String line)
-	{
-		try {
-			Os.debug("< " + line);
-			output.println(line);
-			output.flush();
-		} catch (Exception e) {
-			Os.debug("Client: error writing line", e);
-			this.running = false;
+			raw("PING " + msg.msg);
 		}
 	}
 }

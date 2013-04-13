@@ -1,8 +1,5 @@
 package org.pileus.spades;
 
-import java.io.*;
-import java.net.*;
-
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -20,38 +17,13 @@ public class Task extends Service implements Runnable
 	private String    server    = "irc.freenode.net";
 	private String    nickname  = "andydroid";
 	private String    channel   = "#rhnoise";
-	private int       port      = 6667;
 
 	/* Private data */
 	private Messenger messenger = null;
 	private Thread    thread    = null;
-	private Socket    socket    = null;
 	private Client    client    = null;
 
 	/* Private methods */
-	private void setup()
-	{
-		Os.debug("Task: setup");
-		try {
-			this.socket = new Socket(server, port);
-			this.client = new Client(server, nickname, channel);
-			Os.debug("Task: Socket and client created");
-		} catch(Exception e) {
-			Os.debug("Task: Failed to create socket: " + e);
-			return;
-		}
-
-		try {
-			BufferedReader input  = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			PrintWriter    output = new PrintWriter(socket.getOutputStream());
-			this.client.connect(input, output);
-			Os.debug("Task: Client connected");
-		} catch (Exception e) {
-			Os.debug("Task: Failed to create readers writers: " + e);
-			return;
-		}
-	}
-
 	private void command(int cmd, Object value)
 	{
 		try {
@@ -67,7 +39,7 @@ public class Task extends Service implements Runnable
 	/* Public methods */
 	public Message send(String txt)
 	{
-		if (this.client == null && !this.client.running)
+		if (this.client == null)
 			return null;
 		return this.client.send(txt);
 	}
@@ -77,9 +49,20 @@ public class Task extends Service implements Runnable
 	public void run()
 	{
 		Os.debug("Task: thread run");
-		setup();
-		while (client.running)
-			this.command(MESSAGE, client.recv());
+
+		if (!client.connect(server, nickname, channel))
+			return;
+
+		while (true) {
+			Message msg = client.recv();
+			if (msg == null)
+				break;
+			this.command(MESSAGE, msg);
+		}
+
+		if (!client.abort())
+			return;
+
 		Os.debug("Task: thread exit");
 	}
 
@@ -99,6 +82,7 @@ public class Task extends Service implements Runnable
 		startForeground(1, note);
 
 		/* Start client thread */
+		client = new Client();
 		thread = new Thread(this);
 		thread.start();
 	}
@@ -107,7 +91,12 @@ public class Task extends Service implements Runnable
 	public void onDestroy()
 	{
 		Os.debug("Task: onDestroy");
-		super.onDestroy();
+		try {
+			this.client.abort();
+			this.thread.join();
+		} catch (Exception e) {
+			Os.debug("Task: error stopping service", e);
+		}
 	}
         
 	@Override

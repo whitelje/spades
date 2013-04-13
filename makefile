@@ -24,7 +24,7 @@ clean:
 	rm -rf bin gen obj
 
 logcat:
-	adb logcat Spades:D '*:S'
+	adb logcat Spades:D E/AndroidRuntime '*:S'
 
 run: bin/install.stamp
 	adb shell am start -W -a android.intent.action.MAIN -n $(PACKAGE)/.Main
