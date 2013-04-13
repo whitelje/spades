@@ -83,7 +83,6 @@ public class Main extends Activity
 		if (msg == null)
 			return;
 		this.input.setText("");
-		this.log.append(msg.from + ": " + msg.msg + "\n");
 	}
 
 	/* Activity Methods */

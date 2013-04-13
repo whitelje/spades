@@ -3,15 +3,20 @@ package org.pileus.spades;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Messenger;
+import android.widget.Toast;
 
 public class Task extends Service implements Runnable
 {
 	/* Commands */
-	public static final int REGISTER = 0;
-	public static final int MESSAGE  = 1;
+	public static final int REGISTER   = 0;
+	public static final int MESSAGE    = 1;
+	public static final int CONNECT    = 2;
+	public static final int DISCONNECT = 3;
 
 	/* Configuration */
 	private String    server    = "irc.freenode.net";
@@ -22,6 +27,7 @@ public class Task extends Service implements Runnable
 	private Messenger messenger = null;
 	private Thread    thread    = null;
 	private Client    client    = null;
+	private Toast     toast     = null;
 
 	/* Private methods */
 	private void command(int cmd, Object value)
@@ -36,12 +42,33 @@ public class Task extends Service implements Runnable
 		}
 	}
 
+	private void notify(String text, int icon)
+	{
+		// Log
+		Os.debug("Task: notify - " + text);
+
+		// Toast
+		this.toast.setText(text);
+		this.toast.show();
+
+		// Notify
+		Notification  note   = new Notification(icon, null, 0);
+		Intent        intent = new Intent(this, Main.class);
+		PendingIntent pend   = PendingIntent.getActivity(this, 0, intent, 0);
+
+		note.setLatestEventInfo(this, "Spades!", text, pend);
+		this.startForeground(1, note);
+	}
+
 	/* Public methods */
 	public Message send(String txt)
 	{
 		if (this.client == null)
 			return null;
-		return this.client.send(txt);
+		Message msg = this.client.send(txt);
+		if (msg != null)
+			this.command(MESSAGE, msg);
+		return msg;
 	}
 
 	/* Runnable methods */
@@ -50,18 +77,52 @@ public class Task extends Service implements Runnable
 	{
 		Os.debug("Task: thread run");
 
-		if (!client.connect(server, nickname, channel))
-			return;
+		// Android Toast setup
+		Looper.prepare();
 
-		while (true) {
-			Message msg = client.recv();
+		// Setup notification bar
+		this.notify("Connecting..", android.R.drawable.presence_invisible);
+
+		// Start connecting
+		if (!this.client.connect(server, nickname, channel)) {
+			this.command(DISCONNECT, null);
+			this.notify("Unable to connect", android.R.drawable.presence_offline);
+			this.thread = null;
+			return;
+		}
+
+		// Wait for login
+		while (!this.client.ready) {
+			Message msg = this.client.recv();
 			if (msg == null)
 				break;
 			this.command(MESSAGE, msg);
 		}
 
-		if (!client.abort())
-			return;
+		// Notify connection status
+		if (this.client.ready) {
+			this.command(CONNECT, null);
+			this.notify("Connected", android.R.drawable.presence_online);
+		} else {
+			this.command(DISCONNECT, null);
+			this.notify("Connetion aborted", android.R.drawable.presence_offline);
+		}
+
+		// Process messages
+		while (this.client.ready) {
+			Message msg = this.client.recv();
+			if (msg == null)
+				break;
+			this.command(MESSAGE, msg);
+		}
+
+		// Notify disconnect disconnected
+		this.notify("Disconnected", android.R.drawable.presence_offline);
+		this.command(DISCONNECT, null);
+
+		// Shutdown the client
+		this.client.abort();
+		this.thread = null;
 
 		Os.debug("Task: thread exit");
 	}
@@ -73,18 +134,12 @@ public class Task extends Service implements Runnable
 		Os.debug("Task: onCreate");
 		super.onCreate();
 
-		/* Setup notification bar */
-		Notification  note   = new Notification(android.R.drawable.presence_online, null, 0);
-		Intent        intent = new Intent(this, Main.class);
-		PendingIntent pend   = PendingIntent.getActivity(this, 0, intent, 0);
+		// Setup toast
+		Context context = this.getApplicationContext();
+		this.toast = Toast.makeText(context, "", Toast.LENGTH_SHORT);
 
-		note.setLatestEventInfo(this, "Spades Title", "Spades Message", pend);
-		startForeground(1, note);
-
-		/* Start client thread */
-		client = new Client();
-		thread = new Thread(this);
-		thread.start();
+		// Create the client
+		this.client = new Client();
 	}
         
 	@Override
@@ -104,8 +159,16 @@ public class Task extends Service implements Runnable
 	{
 		Os.debug("Task: onStart");
 		super.onStart(intent, startId);
+
+		// Setup communication with Main
 		this.messenger = (Messenger)intent.getExtras().get("Messenger");
 		this.command(REGISTER, this);
+
+		// Create client thread
+		if (this.thread == null) {
+			this.thread = new Thread(this);
+			this.thread.start();
+		}
 	}
 
 	@Override

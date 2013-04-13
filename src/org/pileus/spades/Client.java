@@ -17,6 +17,9 @@ public class Client
 	private BufferedReader input    = null;
 	private PrintWriter    output   = null;
 
+	/* Public data */
+	public  boolean        ready    = false;
+
 	/* Public Methods */
 	public Client(String username, String hostname)
 	{
@@ -39,17 +42,17 @@ public class Client
 		this.channel  = channel;
 
 		try {
-			socket = new Socket(this.server, this.port);
-			input  = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			output = new PrintWriter(socket.getOutputStream());
+			this.socket = new Socket(this.server, this.port);
+			this.input  = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
+			this.output = new PrintWriter(this.socket.getOutputStream());
 		} catch (Exception e) {
 			Os.debug("Client: failed to create connection: " + e);
 			return false;
 		}
 
 		Os.debug("Client: connected");
-		raw("USER "+username+" "+hostname+" "+server+" :"+nickname);
-		raw("NICK "+nickname);
+		this.raw("USER "+this.username+" "+this.hostname+" "+this.server+" :"+this.nickname);
+		this.raw("NICK "+this.nickname);
 
 		return true;
 	}
@@ -59,6 +62,7 @@ public class Client
 		Os.debug("Client: abort");
 		try {
 			this.socket.close();
+			this.ready = false;
 			return true;
 		} catch (Exception e) {
 			Os.debug("Client: error closing socket", e);
@@ -70,8 +74,8 @@ public class Client
 	{
 		try {
 			Os.debug("< " + line);
-			output.println(line);
-			output.flush();
+			this.output.println(line);
+			this.output.flush();
 		} catch (Exception e) {
 			Os.debug("Client: error writing line", e);
 		}
@@ -79,8 +83,8 @@ public class Client
 
 	public Message send(String txt)
 	{
-		Message msg  = new Message(channel, nickname, txt);
-		raw(msg.line);
+		Message msg  = new Message(this.channel, this.nickname, txt);
+		this.raw(msg.line);
 		return msg;
 	}
 
@@ -92,11 +96,13 @@ public class Client
 				return null;
 			Os.debug("> " + line);
 			Message msg = new Message(line);
-			process(msg);
+			this.process(msg);
 			return msg;
 		} catch (SocketException e) {
+			this.ready = false;
 			return null;
 		} catch (Exception e) {
+			this.ready = false;
 			Os.debug("Client: error in recv", e);
 			return null;
 		}
@@ -106,11 +112,12 @@ public class Client
 	private void process(Message msg)
 	{
 		if (msg.cmd.equals("001") && msg.msg.matches("Welcome.*")) {
-			raw("JOIN "  + channel);
-			raw("TOPIC " + channel);
+			this.raw("JOIN "  + this.channel);
+			this.raw("TOPIC " + this.channel);
+			this.ready = true;
 		}
 		if (msg.cmd.equals("PING")) {
-			raw("PING " + msg.msg);
+			this.raw("PING " + msg.msg);
 		}
 	}
 }
