@@ -140,6 +140,7 @@ public class Task extends Service implements Runnable
 
 		this.client = new Client();
 		this.prefs  = PreferenceManager.getDefaultSharedPreferences(this);
+		PreferenceManager.setDefaultValues(this, R.xml.prefs, false);
 	}
 
 	@Override
