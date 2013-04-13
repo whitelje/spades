@@ -5,8 +5,16 @@ import java.util.regex.Matcher;
 
 public class Message
 {
+	/* Enumerations */
+	enum Type {
+		OTHER,
+		PRIVMSG,
+		TOPIC,
+		NAMES,
+	};
+
 	/* Constnats */
-	private final  String  reMsg  = "(:([^ ]+) +)?(([A-Z0-9]+) +)(([^ ]+) +)?(([^: ]+) +)?(:(.*))";
+	private final  String  reMsg  = "(:([^ ]+) +)?(([A-Z0-9]+) +)(([^ ]+)[= ]+)?(([^: ]+) +)?(:(.*))";
 	private final  String  reFrom = "([^! ]+)!.*";
 	private final  String  reTo   = "(([^ :,]*)[:,] *)?(.*)";
 
@@ -23,6 +31,7 @@ public class Message
 	public String  arg  = "";
 	public String  msg  = "";
 
+	public Type    type = Type.OTHER;
 	public String  from = "";
 	public String  to   = "";
 	public String  txt  = "";
@@ -45,15 +54,18 @@ public class Message
 
 	public Message(String line)
 	{
+		// Initialize regexes
 		if (ptMsg  == null) ptMsg  = Pattern.compile(reMsg);
 		if (ptFrom == null) ptFrom = Pattern.compile(reFrom);
 		if (ptTo   == null) ptTo   = Pattern.compile(reTo);
 
+		// Cleanup line
 		line = line.replaceAll("\\s+",       " ");
 		line = line.replaceAll("^ | $",      "");
 		line = line.replaceAll("\003[0-9]*", "");
 		this.line = line;
 
+		// Split line into parts
 		Matcher mrMsg = ptMsg.matcher(line);
 		if (mrMsg.matches()) {
 			this.src  = notnull(mrMsg.group(2));
@@ -63,6 +75,7 @@ public class Message
 			this.msg  = notnull(mrMsg.group(10));
 		}
 
+		// Determine friendly parts
 		Matcher mrFrom = ptFrom.matcher(this.src);
 		if (mrFrom.matches())
 			this.from = notnull(mrFrom.group(1));
@@ -75,6 +88,11 @@ public class Message
 			this.txt  = notnull(this.msg);
 		else
 			this.txt  = notnull(mrTo.group(3));
+
+		// Parse commands names
+		if (this.cmd.equals("PRIVMSG")) this.type = Type.PRIVMSG;
+		if (this.cmd.equals("332"))     this.type = Type.TOPIC;
+		if (this.cmd.equals("353"))     this.type = Type.NAMES;
 	}
 
 	public void debug()

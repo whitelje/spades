@@ -22,13 +22,15 @@ import android.widget.Toast;
 public class Main extends Activity
 {
 	/* Static data */
-	private Handler      handler; 
-	private Messenger    messenger; 
+	private Handler      handler;
+	private Messenger    messenger;
 
 	/* Private data */
 	private Task         task;
 	private Toast        toast;
 	private boolean      ready;
+	private String       topic;
+	private String       names;
 
 	/* Widgets */
 	private TabHost      window;
@@ -54,18 +56,33 @@ public class Main extends Activity
 	{
 		Message msg = (Message)obj;
 
+		// Debug
 		this.debug.append("> " + msg.line + "\n");
 		this.dscroll.smoothScrollTo(0, this.debug.getBottom());
 
-		if (msg.cmd.equals("PRIVMSG")) {
-			this.log.append(msg.from + ": " + msg.msg + "\n");
-			this.lscroll.smoothScrollTo(0, this.log.getBottom());
+		// Chat
+		switch (msg.type) {
+			case PRIVMSG:
+				this.log.append(msg.from + ": " + msg.msg + "\n");
+				break;
+			case TOPIC:
+				if (!msg.txt.equals(this.topic))
+					this.log.append("** Topic for " + msg.arg + ": " + msg.txt + " **\n");
+				this.topic = msg.txt;
+				break;
+			case NAMES:
+				if (!msg.txt.equals(this.names))
+					this.log.append("** Users in " + msg.arg + ": " + msg.txt + " **\n");
+				this.names = msg.txt;
+				break;
 		}
+		this.lscroll.smoothScrollTo(0, this.log.getBottom());
 	}
 
 	private void onNotify(String text)
 	{
 		Os.debug("Main: onNotify - " + text);
+		this.log.append("** " + text + " **\n");
 		this.toast.setText(text);
 		this.toast.show();
 	}
