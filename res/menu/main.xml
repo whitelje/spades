@@ -4,6 +4,6 @@
 		android:title="Connect" />
 	<item android:id="@+id/disconnect"
 		android:title="Disconnect" />
-	<item android:id="@+id/help"
-		android:title="Help" />
+	<item android:id="@+id/exit"
+		android:title="Exit" />
 </menu>

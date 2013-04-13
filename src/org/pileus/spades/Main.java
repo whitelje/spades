@@ -26,6 +26,7 @@ public class Main extends Activity
 
 	/* Private data */
 	private Task         task;
+	private boolean      ready;
 
 	/* Widgets */
 	private TabHost      window;
@@ -185,6 +186,14 @@ public class Main extends Activity
 	}
 
 	@Override
+	public boolean onPrepareOptionsMenu(Menu menu)
+	{
+		menu.findItem(R.id.connect).setVisible(!this.ready);
+		menu.findItem(R.id.disconnect).setVisible(this.ready);
+		return true;
+	}
+
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
 		switch (item.getItemId()) {
@@ -194,8 +203,9 @@ public class Main extends Activity
 			case R.id.disconnect:
 				this.stopService();
 				return true;
-			case R.id.help:
-				Os.debug("Main: Help!");
+			case R.id.exit:
+				this.stopService();
+				this.finish();
 				return true;
 			default:
 				return false;
@@ -213,6 +223,12 @@ public class Main extends Activity
 					break;
 				case Task.MESSAGE:
 					Main.this.onMessage(msg.obj);
+					break;
+				case Task.CONNECT:
+					Main.this.ready = true;
+					break;
+				case Task.DISCONNECT:
+					Main.this.ready = false;
 					break;
 				default:
 					Os.debug("Main: unknown message - " + msg.what);
