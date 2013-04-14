@@ -31,6 +31,7 @@ public class Main extends Activity
 	private boolean      ready;
 	private String       topic;
 	private String       names;
+	private Cards        cards;
 
 	/* Widgets */
 	private TabHost      window;
@@ -39,7 +40,7 @@ public class Main extends Activity
 	private TextView     log;
 	private EditText     input;
 	private Button       send;
-	private TextView     spades;
+	private LinearLayout spades;
 	private TextView     debug;
 
 	private ScrollView   lscroll;
@@ -210,7 +211,7 @@ public class Main extends Activity
 			this.log       = (TextView)     findViewById(R.id.log);
 			this.input     = (EditText)     findViewById(R.id.input);
 			this.send      = (Button)       findViewById(R.id.send);
-			this.spades    = (TextView)     findViewById(R.id.spades);
+			this.spades    = (LinearLayout) findViewById(R.id.spades);
 			this.debug     = (TextView)     findViewById(R.id.debug);
 
 			this.lscroll   = (ScrollView)   findViewById(R.id.log_scroll);
@@ -231,6 +232,11 @@ public class Main extends Activity
 					.newTabSpec("debug")
 					.setIndicator("Debug")
 					.setContent(R.id.debug));
+
+			// Setup OpenGL view
+			this.cards = new Cards(this);
+			this.spades.addView(cards);
+			
 		} catch (Exception e) {
 			Os.debug("Error setting content view", e);
 			return;

@@ -50,11 +50,17 @@
 						android:text="Send" />
 				</LinearLayout>
 			</LinearLayout>
-			<TextView
+			<LinearLayout
 				android:id="@+id/spades"
+				android:orientation="vertical"
 				android:layout_width="fill_parent"
-				android:layout_height="fill_parent"
-				android:text="Spades" />
+				android:layout_height="fill_parent">
+				<TextView
+					android:id="@+id/spades_text"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:text="Spades" />
+			</LinearLayout>
 			<ScrollView
 				android:id="@+id/debug_scroll"
 				android:layout_width="fill_parent"
