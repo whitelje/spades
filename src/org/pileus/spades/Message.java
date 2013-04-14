@@ -24,7 +24,8 @@ public class Message
 		CHANNEL,  // Normal message to a channel
 		MENTION,  // User was mentioned in message text
 		DIRECT,   // Message directed towards user
-		PRIVMSG   // Private message to user only
+		PRIVMSG,  // Private message to user only
+		SENT      // Message was sent by the user
 	};
 
 	/* Constants */
@@ -62,7 +63,10 @@ public class Message
 	/* Public Methods */
 	public Message(String dst, String from, String msg)
 	{
+		this.time = new Date();
+		this.type = Type.PRIVMSG;
 		this.cmd  = "PRIVMSG";
+		this.how  = How.SENT;
 		this.dst  = dst;
 		this.from = from;
 		this.msg  = msg;

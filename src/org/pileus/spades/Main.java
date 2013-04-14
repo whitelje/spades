@@ -57,43 +57,37 @@ public class Main extends Activity
 		String from = String.format("<font color=\"#ff88ff\">%s</font>", msg.from);
 		String text = msg.msg;
 		String fmt  = null;
-		Os.debug("msg: " + Os.base64(msg.msg));
 
-		// Do IRC Colors
-		//   - This doesn't actually work
-		String fg   = "<font color=\"<$1>\">";
-		String bg   = "<font bgcolor=\"<$2>\">";
+		// Do IRC Colors - only partly works
+		String fg = "<font color=\"<$1>\">";
 		text = text
 			.replaceAll("&", "&amp;")
 			.replaceAll("<", "&lt;")
 			.replaceAll(">", "&gt;");
 		text = text
-			.replaceAll("\\002", "<b>")  // bold
-			.replaceAll("\\011", "<i>")  // italic
-			.replaceAll("\\025", "<u>")  // underline
-			.replaceAll("\\022", "<b>"); // reverse
+			.replaceAll("\\002", "<b>")             // bold
+			.replaceAll("\\011", "<i>")             // italic
+			.replaceAll("\\025", "<u>");            // underline
 		text = text
-			.replaceAll("\\003(\\d+),(\\d+)", fg + bg) // color
-			.replaceAll("\\013(\\d+),(\\d+)", fg + bg) // color
-			.replaceAll("\\003(\\d+)", fg)             // color
-			.replaceAll("\\013(\\d+)", fg);            // color
+			.replaceAll("\\003(\\d+)(,\\d+)?", fg)  // color
+			.replaceAll("\\013(\\d+)(,\\d+)?", fg); // color
 		text = text
-			.replaceAll("<0?0>", "#000000")  // White
-			.replaceAll("<0?1>", "#000000")  // Black
-			.replaceAll("<0?2>", "#000080")  // Navy Blue
-			.replaceAll("<0?3>", "#008000")  // Green
-			.replaceAll("<0?4>", "#FF0000")  // Red
-			.replaceAll("<0?5>", "#804040")  // Brown
-			.replaceAll("<0?6>", "#8000FF")  // Purple
-			.replaceAll("<0?7>", "#808000")  // Olive
-			.replaceAll("<0?8>", "#FFFF00")  // Yellow
-			.replaceAll("<0?9>", "#00FF00")  // Lime Green
-			.replaceAll("<10>",  "#008080")  // Teal
-			.replaceAll("<11>",  "#00FFFF")  // Aqua Light
-			.replaceAll("<12>",  "#0000FF")  // Royal Blue
-			.replaceAll("<13>",  "#FF00FF")  // Hot Pink
-			.replaceAll("<14>",  "#808080")  // Dark Gray
-			.replaceAll("<15>",  "#C0C0C0"); // Light Gray
+			.replaceAll("<0?0>", "#000000")         // White
+			.replaceAll("<0?1>", "#000000")         // Black
+			.replaceAll("<0?2>", "#000080")         // Navy Blue
+			.replaceAll("<0?3>", "#008000")         // Green
+			.replaceAll("<0?4>", "#FF0000")         // Red
+			.replaceAll("<0?5>", "#804040")         // Brown
+			.replaceAll("<0?6>", "#8000FF")         // Purple
+			.replaceAll("<0?7>", "#808000")         // Olive
+			.replaceAll("<0?8>", "#FFFF00")         // Yellow
+			.replaceAll("<0?9>", "#00FF00")         // Lime Green
+			.replaceAll("<10>",  "#008080")         // Teal
+			.replaceAll("<11>",  "#00FFFF")         // Aqua Light
+			.replaceAll("<12>",  "#0000FF")         // Royal Blue
+			.replaceAll("<13>",  "#FF00FF")         // Hot Pink
+			.replaceAll("<14>",  "#808080")         // Dark Gray
+			.replaceAll("<15>",  "#C0C0C0");        // Light Gray
 
 		// Message formatting
 		switch (msg.how) {
@@ -101,6 +95,9 @@ public class Main extends Activity
 			case MENTION:
 			case PRIVMSG:
 				fmt  = "<b>(%s) %s: %s</b>";
+				break;
+			case SENT:
+				fmt  = "(%s) <b>%s</b>: %s";
 				break;
 			default:
 				fmt  = "(%s) %s: %s";
