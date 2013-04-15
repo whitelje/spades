@@ -31,9 +31,12 @@ run: bin/install.stamp
 	
 
 install bin/install.stamp: $(OUTPUT)
-	adb uninstall $(PACKAGE)
 	adb install -r $+
 	touch bin/install.stamp
+
+uninstall:
+	adb uninstall $(PACKAGE)
+	rm bin/install.stamp
 
 # Rules
 %.apk: %.dex %.res | bin
