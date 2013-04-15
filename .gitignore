@@ -6,3 +6,7 @@
 bin/
 gen/
 obj/
+
+# Leave out cards for now
+res/drawable/card_*.png
+opt/drawable/card_*.svg

@@ -28,7 +28,6 @@ logcat:
 
 run: bin/install.stamp
 	adb shell am start -W -a android.intent.action.MAIN -n $(PACKAGE)/.Main
-	
 
 install bin/install.stamp: $(OUTPUT)
 	adb install -r $+
@@ -37,6 +36,24 @@ install bin/install.stamp: $(OUTPUT)
 uninstall:
 	adb uninstall $(PACKAGE)
 	rm bin/install.stamp
+
+png-cards:
+	git checkout cards-png -- 'res/drawable/card_*.png'
+	git reset    HEAD      -- 'res/drawable/card_*.png'
+
+svg-cards:
+	git checkout cards-svg -- 'opt/drawable/card_*.svg'
+	git reset    HEAD      -- 'opt/drawable/card_*.svg'
+
+convert:
+	for svg in opt/drawable/*.svg; do        \
+	        png=$${svg/svg/png};             \
+	        png=$${png/opt/res};             \
+	        rsvg-convert -w 2048 -h 2048     \
+	                $$svg -o $$png;          \
+	        convert -trim -resize '256x256!' \
+	                $$png $$png;             \
+	done
 
 # Rules
 %.apk: %.dex %.res | bin
