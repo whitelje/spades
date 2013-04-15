@@ -1,0 +1,18 @@
+<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 744.09 1052.4" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <defs>
+  <pattern id="a" xlink:href="#b" patternTransform="matrix(-.11060 .11060 -.11060 -.11060 -254.02 74.426)"/>
+  <pattern id="b" width="108.6184" patternUnits="userSpaceOnUse" patternTransform="translate(-254.02 74.426)" height="110.74085">
+   <path transform="translate(1070.4 -11.764)" fill="#131f67" d="m-1016 25.721-10.764 16.121 7.1773 18.006-18.658-5.2558-14.907 12.39-0.767-19.369-16.39-10.349 18.184-6.7148 4.7773-18.786 12.005 15.219z"/>
+   <path d="m-1016 25.721-10.764 16.121 7.1773 18.006-18.658-5.2558-14.907 12.39-0.767-19.369-16.39-10.349 18.184-6.7148 4.7773-18.786 12.005 15.219z" transform="matrix(.86603 .5 -.5 .86603 946.34 568.73)" fill="#131f67"/>
+   <path transform="translate(1124.7 -11.764)" fill="#131f67" d="m-1016 25.721-10.764 16.121 7.1773 18.006-18.658-5.2558-14.907 12.39-0.767-19.369-16.39-10.349 18.184-6.7148 4.7773-18.786 12.005 15.219z"/>
+   <path d="m-1016 25.721-10.764 16.121 7.1773 18.006-18.658-5.2558-14.907 12.39-0.767-19.369-16.39-10.349 18.184-6.7148 4.7773-18.786 12.005 15.219z" transform="matrix(.86603 .5 -.5 .86603 1000.6 568.73)" fill="#131f67"/>
+  </pattern>
+ </defs>
+ <g>
+  <g transform="translate(520.05 -131.04)">
+   <rect rx="10.63" ry="10.63" height="310.81" width="222.23" stroke="#000" y="501.82" x="-259.11" fill="#fff"/>
+   <rect ry="0" height="286.64" width="197.05" stroke="#131f67" stroke-linecap="round" y="513.9" x="-246.53" stroke-width="4.9524" fill="none"/>
+   <rect height="278.91" width="188.28" stroke="#131f67" stroke-linecap="round" y="517.77" x="-242.14" fill="url(#a)"/>
+  </g>
+ </g>
+</svg>

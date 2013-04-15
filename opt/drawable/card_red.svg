@@ -1,0 +1,18 @@
+<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 744.09 1052.4" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <defs>
+  <pattern id="a" xlink:href="#b" patternTransform="matrix(.70711 -.70711 .70711 .70711 127.77 536.85)"/>
+  <pattern id="b" width="16.771802" patternUnits="userSpaceOnUse" patternTransform="translate(127.77 536.85)" height="17.115901">
+   <g transform="translate(-127.77 -536.85)">
+    <path d="m139.93 538.17-1.5309 4.5145 2.851 3.8204-4.7666-0.0609-2.7524 3.8921-1.415-4.5521-4.5521-1.415 3.8921-2.7524-0.0609-4.7666 3.8204 2.851z" transform="matrix(.62549 0 0 .62549 47.85 201.06)" fill="#d40000"/>
+    <path transform="matrix(.31274 .54169 -.54169 .31274 392.29 297.9)" fill="#d40000" d="m139.93 538.17-1.5309 4.5145 2.851 3.8204-4.7666-0.0609-2.7524 3.8921-1.415-4.5521-4.5521-1.415 3.8921-2.7524-0.0609-4.7666 3.8204 2.851z"/>
+    <path transform="matrix(.62549 0 0 -.62549 47.85 889.76)" fill="#d40000" d="m139.93 538.17-1.5309 4.5145 2.851 3.8204-4.7666-0.0609-2.7524 3.8921-1.415-4.5521-4.5521-1.415 3.8921-2.7524-0.0609-4.7666 3.8204 2.851z"/>
+    <path d="m139.93 538.17-1.5309 4.5145 2.851 3.8204-4.7666-0.0609-2.7524 3.8921-1.415-4.5521-4.5521-1.415 3.8921-2.7524-0.0609-4.7666 3.8204 2.851z" transform="matrix(.31274 -.54169 -.54169 -.31274 392.29 792.91)" fill="#d40000"/>
+   </g>
+  </pattern>
+ </defs>
+ <g transform="translate(811.38 -119.73)">
+  <rect rx="10.63" ry="10.63" height="310.81" width="222.23" stroke="#000" y="490.5" x="-550.44" fill="#fff"/>
+  <rect ry="0" height="286.64" width="197.05" stroke="#d40000" stroke-linecap="round" y="502.59" x="-537.85" stroke-width="4.9524" fill="none"/>
+  <rect height="278.91" width="188.28" stroke="#d40000" stroke-linecap="round" y="506.45" x="-533.47" fill="url(#a)"/>
+ </g>
+</svg>
