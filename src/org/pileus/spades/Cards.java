@@ -18,25 +18,24 @@ import android.opengl.GLUtils;
 public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 {
 	/* Shader data */
-	private final String vertSource =
-		"attribute vec4 a_position;"  +
-		"attribute vec2 a_texCoord;"  +
-		"varying   vec2 v_texCoord;"  +
-		"void main() {"               +
-		"  gl_Position = a_position;" +
-		"  v_texCoord  = a_texCoord;" +
-		"}";
+	private final String vertSource
+		= "attribute vec4 a_position;"
+		+ "attribute vec2 a_mapping;"
+		+ "varying   vec2 v_mapping;"
+		+ "void main() {"
+		+ "  gl_Position = a_position;"
+		+ "  v_mapping   = a_mapping;"
+		+ "}";
 
-	private final String fragSource =
-		"precision mediump   float;"      +
-		"varying   vec2      v_texCoord;" +
-		"uniform   sampler2D s_texture;"  +
-		"uniform   vec4      a_color;"    +
-		"void main() {"                   +
-		//"  gl_FragColor = a_color;"       +
-		"  gl_FragColor = texture2D("     +
-		"    s_texture, v_texCoord);"     +
-		"}";
+	private final String fragSource
+		= "precision mediump   float;"
+		+ "uniform   sampler2D u_texture;"
+		+ "uniform   vec4      u_color;"
+		+ "varying   vec2      v_mapping;"
+		+ "void main() {"
+		+ "  gl_FragColor = texture2D("
+		+ "    u_texture, v_mapping);"
+		+ "}";
 
 	/* Drawing data */
 	private final float  vertCoords[] = {
@@ -46,7 +45,7 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		 0.5f,  0.5f, 0.0f,
 	};
 
-	private final float  texCoords[] = {
+	private final float  mapCoords[] = {
 		0.0f, 0.0f,
 		0.0f, 1.0f,
 		1.0f, 1.0f,
@@ -66,20 +65,20 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 	};
 
 	/* Private data */
-	private Resources    res;
-	private int          program;
+	private Resources    res;         // app resources
+	private int          program;     // opengl program
 
-	private FloatBuffer  vertBuf;
-	private FloatBuffer  coordBuf;
+	private FloatBuffer  vertBuf;     // vertex position buffer
+	private FloatBuffer  mapBuf;      // texture mapping coord buffer
 
-	private int          vertHandle;
-	private int          coordHandle;
-	private int          texHandle;
-	private int          colorHandle;
+	private int          vertHandle;  // vertex positions
+	private int          mapHandle;   // texture mapping coords
+	private int          texHandle;   // texture data
+	private int          colorHandle; // color data
 
-	private int          faces[] = new int[52];
-	private int          backs[] = new int[2];
-	private int          test[]  = new int[1];
+	private int          face[];      // card face textures
+	private int          red;         // red card back
+	private int          blue;        // blue card back
 
 	/* Private methods */
 	private int loadShader(int type, String code)
@@ -92,27 +91,44 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		return shader;
 	}
 
-	public int loadTexture(int id)
+	private int loadTexture(String name)
 	{
-		Os.debug("Cards: loadTexture");
+		Os.debug("Cards: loadTexture - " + name);
 
 		final int[] tex = new int[1];
 
-		// Load the bitmap
-		Bitmap bitmap = BitmapFactory.decodeResource(this.res, id);
-		Os.debug("Cards: loadTexture - bitmap=" + bitmap);
+		/* Lookup the resource ID */
+		int id = 0;
+		try {
+			id = R.drawable.class.getField(name).getInt(null);
+		} catch(Exception e) {
+			Os.debug("Cards: lookup failed for '" + name + "'", e);
+			return 0;
+		}
 
-		// Copy into OpenGL
+		/* Load the bitmap */
+		Bitmap bitmap = BitmapFactory.decodeResource(this.res, id);
+
+		/* Copy into OpenGL */
 		GLES20.glGenTextures(1, tex, 0);
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, tex[0]);
 		GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
 		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
 		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
 
-		// Free the bitmap ??
-		//bitmap.recycle();
-
 		return tex[0];
+	}
+
+	private FloatBuffer loadBuffer(float[] data)
+	{
+		ByteBuffer bytes = ByteBuffer.allocateDirect(data.length * 4);
+		bytes.order(ByteOrder.nativeOrder());
+
+		FloatBuffer buf = bytes.asFloatBuffer();
+		buf.put(data);
+		buf.position(0);
+
+		return buf;
 	}
 
 	/* GLSurfaceView Methods */
@@ -122,6 +138,8 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		Os.debug("Cards: create");
 
 		this.res = context.getResources();
+
+		this.face  = new int[52];
 
 		this.setEGLContextClientVersion(2);
 		this.setRenderer(this);
@@ -146,36 +164,24 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 
 		/* Get shaders attributes */
 		this.vertHandle  = GLES20.glGetAttribLocation(program, "a_position");
-		this.coordHandle = GLES20.glGetAttribLocation(program, "a_texCoord");
-		this.texHandle   = GLES20.glGetUniformLocation(program, "s_texture");
-		this.colorHandle = GLES20.glGetUniformLocation(program, "a_color");
-
-		// ???
-		//this.coordBuf  = FloatBuffer.wrap(this.texCoords);
+		this.mapHandle   = GLES20.glGetAttribLocation(program, "a_mapping");
+		this.texHandle   = GLES20.glGetUniformLocation(program, "u_texture");
+		this.colorHandle = GLES20.glGetUniformLocation(program, "u_color");
 
 		/* Create vertex array  */
-		ByteBuffer vertBytes = ByteBuffer.allocateDirect(vertCoords.length * 4);
-		vertBytes.order(ByteOrder.nativeOrder());
-
-		this.vertBuf = vertBytes.asFloatBuffer();
-		this.vertBuf.put(vertCoords);
-		this.vertBuf.position(0);
-
-		/* Create texture coord array */
-		ByteBuffer coordBytes = ByteBuffer.allocateDirect(texCoords.length * 4);
-		coordBytes.order(ByteOrder.nativeOrder());
-
-		this.coordBuf = coordBytes.asFloatBuffer();
-		this.coordBuf.put(texCoords);
-		this.coordBuf.position(0);
+		this.vertBuf = this.loadBuffer(this.vertCoords);
+		this.mapBuf  = this.loadBuffer(this.mapCoords);
 
 		/* Load textures */
-		this.test[0] = this.loadTexture(R.drawable.card_as);
-		//this.test[0] = this.staticTexture();
+		for (int i = 0; i < 52; i++) {
+			String name = "card_" + this.cards[i].toLowerCase();
+			this.face[i] = this.loadTexture(name);
+		}
+		this.red  = this.loadTexture("card_red");
+		this.blue = this.loadTexture("card_blue");
 
 		/* Debug */
 		Os.debug("Cards: onSurfaceCreate");
-		Os.debug("Cards:     tex=" + this.test[0]);
 	}
 
 	@Override
@@ -191,18 +197,18 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
 		GLES20.glEnableVertexAttribArray(this.vertHandle);
-		GLES20.glEnableVertexAttribArray(this.coordHandle);
+		GLES20.glEnableVertexAttribArray(this.mapHandle);
 		GLES20.glVertexAttribPointer(this.vertHandle,  3, GLES20.GL_FLOAT, false, 3*4, this.vertBuf);
-		GLES20.glVertexAttribPointer(this.coordHandle, 2, GLES20.GL_FLOAT, false, 2*4, this.coordBuf);
+		GLES20.glVertexAttribPointer(this.mapHandle, 2, GLES20.GL_FLOAT, false, 2*4, this.mapBuf);
 
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, this.test[0]);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, this.red);
 		GLES20.glUniform1i(this.texHandle, 0);
 
 		GLES20.glUniform4fv(this.colorHandle, 1, this.color, 0);
 
 		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 4);
-		GLES20.glDisableVertexAttribArray(this.coordHandle);
+		GLES20.glDisableVertexAttribArray(this.mapHandle);
 	}
 
 	@Override
