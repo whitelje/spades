@@ -227,50 +227,10 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
 		GLES20.glUniform1i(this.texHandle, 0);
 
-		/* Draw "Table" */
-		Matrix.setIdentityM(this.model, 0);
-		GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
+		/* Draw objects */
 		this.drawTable();
-
-		/* Draw hand */
-		int num = this.hand.length;
-		for (int i = 0; i < num; i++) {
-			if (this.drag && this.ypos >= this.ylim && i == this.pick)
-				continue;
-
-			Matrix.setIdentityM(this.model, 0);
-
-			Matrix.rotateM(this.model, 0, 45f, 1f, 0f, 0f);
-			Matrix.translateM(this.model, 0, 0f, -0.3f, 1.20f);
-
-			if (this.drag) {
-				float pct = (float)(i+0.5) / num;
-				float err = this.xpos - pct;
-				float y   = (float)this.ypos / this.ylim;
-				float lim = Math.min(Math.max(y,0),1);
-				float fcn = 0.1f
-					* (float)Math.exp(-10*num*Math.pow(y*err,2))
-					* (1f-(float)Math.pow(1-lim, 2));
-				Matrix.translateM(this.model, 0, 0, fcn, 0);
-			}
-			float left  = -20f + 20f*(1f/num);
-			float right =  54f - 54f*(1f/num);
-			float ang   = left + i*(right-left)/num;
-			Matrix.rotateM(this.model, 0, ang, 0f, 0f, -1f);
-			Matrix.translateM(this.model, 0, 0f, 0.15f, 0f);
-
-			GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
-			this.drawCard(this.hand[i]);
-		}
-
-		/* Draw selected card */
-		if (this.drag && this.ypos >= this.ylim) {
-			Matrix.setIdentityM(this.model, 0);
-			Matrix.rotateM(this.model, 0, 45f, 1f, 0f, 0f);
-			Matrix.translateM(this.model, 0, 0f, 0f, 1.20f);
-			GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
-			this.drawCard(this.hand[this.pick]);
-		}
+		this.drawHand();
+		this.drawPick();
 	}
 
 	@Override
@@ -390,11 +350,63 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 	/* Private drawing methods */
 	private void drawTable()
 	{
+		/* Setup view */
+		Matrix.setIdentityM(this.model, 0);
+		GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
+
 		/* Draw table */
 		GLES20.glVertexAttribPointer(this.vertHandle, 3, GLES20.GL_FLOAT, false, 3*4, this.tableBuf);
 		GLES20.glVertexAttribPointer(this.mapHandle,  2, GLES20.GL_FLOAT, false, 2*4, this.mapBuf);
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, this.table);
 		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 4);
+	}
+
+
+	private void drawHand()
+	{
+		/* Draw hand */
+		int num = this.hand.length;
+		for (int i = 0; i < num; i++) {
+			if (this.drag && this.ypos >= this.ylim && i == this.pick)
+				continue;
+
+			Matrix.setIdentityM(this.model, 0);
+
+			Matrix.rotateM(this.model, 0, 45f, 1f, 0f, 0f);
+			Matrix.translateM(this.model, 0, 0f, -0.3f, 1.20f);
+
+			if (this.drag) {
+				float pct = (float)(i+0.5) / num;
+				float err = this.xpos - pct;
+				float y   = (float)this.ypos / this.ylim;
+				float lim = Math.min(Math.max(y,0),1);
+				float fcn = 0.1f
+					* (float)Math.exp(-10*num*Math.pow(y*err,2))
+					* (1f-(float)Math.pow(1-lim, 2));
+				Matrix.translateM(this.model, 0, 0, fcn, 0);
+			}
+
+			float left  = -20f + 20f*(1f/num);
+			float right =  54f - 54f*(1f/num);
+			float ang   = left + i*(right-left)/num;
+			Matrix.rotateM(this.model, 0, ang, 0f, 0f, -1f);
+			Matrix.translateM(this.model, 0, 0f, 0.15f, 0f);
+
+			GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
+			this.drawCard(this.hand[i]);
+		}
+	}
+
+	private void drawPick()
+	{
+		/* Draw selected card */
+		if (this.drag && this.ypos >= this.ylim) {
+			Matrix.setIdentityM(this.model, 0);
+			Matrix.rotateM(this.model, 0, 45f, 1f, 0f, 0f);
+			Matrix.translateM(this.model, 0, 0f, 0f, 1.20f);
+			GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
+			this.drawCard(this.hand[this.pick]);
+		}
 	}
 
 	private void drawCard(String name)
