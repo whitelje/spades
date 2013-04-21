@@ -94,57 +94,6 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 	private int          red;         // red card back
 	private int          blue;        // blue card back
 
-	/* Private methods */
-	private int loadShader(int type, String code)
-	{
-		Os.debug("Cards: loadShader");
-
-		int shader = GLES20.glCreateShader(type);
-		GLES20.glShaderSource(shader, code);
-		GLES20.glCompileShader(shader);
-		return shader;
-	}
-
-	private int loadTexture(String name)
-	{
-		Os.debug("Cards: loadTexture - " + name);
-
-		final int[] tex = new int[1];
-
-		/* Lookup the resource ID */
-		int id = 0;
-		try {
-			id = R.drawable.class.getField(name).getInt(null);
-		} catch(Exception e) {
-			Os.debug("Cards: lookup failed for '" + name + "'", e);
-			return 0;
-		}
-
-		/* Load the bitmap */
-		Bitmap bitmap = BitmapFactory.decodeResource(this.res, id);
-
-		/* Copy into OpenGL */
-		GLES20.glGenTextures(1, tex, 0);
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, tex[0]);
-		GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
-		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
-
-		return tex[0];
-	}
-
-	private FloatBuffer loadBuffer(float[] data)
-	{
-		ByteBuffer bytes = ByteBuffer.allocateDirect(data.length * 4);
-		bytes.order(ByteOrder.nativeOrder());
-
-		FloatBuffer buf = bytes.asFloatBuffer();
-		buf.put(data);
-		buf.position(0);
-
-		return buf;
-	}
-
 	/* GLSurfaceView Methods */
 	public Cards(Context context)
 	{
@@ -269,5 +218,56 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 				-90f, 1, 0, 0);
 		Matrix.translateM(this.model, 0,
 				0, 0, 1.5f);
+	}
+
+	/* Private methods */
+	private int loadShader(int type, String code)
+	{
+		Os.debug("Cards: loadShader");
+
+		int shader = GLES20.glCreateShader(type);
+		GLES20.glShaderSource(shader, code);
+		GLES20.glCompileShader(shader);
+		return shader;
+	}
+
+	private int loadTexture(String name)
+	{
+		Os.debug("Cards: loadTexture - " + name);
+
+		final int[] tex = new int[1];
+
+		/* Lookup the resource ID */
+		int id = 0;
+		try {
+			id = R.drawable.class.getField(name).getInt(null);
+		} catch(Exception e) {
+			Os.debug("Cards: lookup failed for '" + name + "'", e);
+			return 0;
+		}
+
+		/* Load the bitmap */
+		Bitmap bitmap = BitmapFactory.decodeResource(this.res, id);
+
+		/* Copy into OpenGL */
+		GLES20.glGenTextures(1, tex, 0);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, tex[0]);
+		GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+
+		return tex[0];
+	}
+
+	private FloatBuffer loadBuffer(float[] data)
+	{
+		ByteBuffer bytes = ByteBuffer.allocateDirect(data.length * 4);
+		bytes.order(ByteOrder.nativeOrder());
+
+		FloatBuffer buf = bytes.asFloatBuffer();
+		buf.put(data);
+		buf.position(0);
+
+		return buf;
 	}
 }
