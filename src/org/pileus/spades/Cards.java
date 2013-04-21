@@ -125,6 +125,7 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 
 	/* Properties */
 	public String[]      hand;        // cards to display
+	public String[]      pile;        // played cards to display
 
 	/* GLSurfaceView Methods */
 	public Cards(Context context)
@@ -145,6 +146,10 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		this.hand  = new String[] {
 			"As", "7s", "6s",  "6h", "2h", "Ac",
 			"Kc", "3c", "10d", "9d", "8d", "7d", "2d"
+		};
+
+		this.pile  = new String[] {
+			"As", "7s", "6s"
 		};
 
 		this.index = new HashMap<String,Integer>(52);
@@ -229,6 +234,7 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 
 		/* Draw objects */
 		this.drawTable();
+		this.drawPile();
 		this.drawHand();
 		this.drawPick();
 	}
@@ -361,6 +367,25 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 4);
 	}
 
+	private void drawPile()
+	{
+		/* Draw played cards */
+		for (int i = 0; i < 4; i++) {
+			if (i >= this.pile.length || this.pile[i] == null)
+				continue;
+
+			float ang = i * 90f;
+
+			Matrix.setIdentityM(this.model, 0);
+
+			Matrix.rotateM(this.model, 0, -ang, 0f, 0f, 1f);
+			Matrix.translateM(this.model, 0, -0.30f, 0f, 0f);
+			Matrix.rotateM(this.model, 0,  ang, 0f, 0f, 1f);
+			Matrix.scaleM(this.model, 0, 3f, 3f, 0f);
+
+			this.drawCard(this.pile[i]);
+		}
+	}
 
 	private void drawHand()
 	{
@@ -392,7 +417,6 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 			Matrix.rotateM(this.model, 0, ang, 0f, 0f, -1f);
 			Matrix.translateM(this.model, 0, 0f, 0.15f, 0f);
 
-			GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
 			this.drawCard(this.hand[i]);
 		}
 	}
@@ -404,7 +428,6 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 			Matrix.setIdentityM(this.model, 0);
 			Matrix.rotateM(this.model, 0, 45f, 1f, 0f, 0f);
 			Matrix.translateM(this.model, 0, 0f, 0f, 1.20f);
-			GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
 			this.drawCard(this.hand[this.pick]);
 		}
 	}
@@ -414,6 +437,9 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		int idx   = this.index.get(name);
 		int front = this.face[idx];
 		int back  = this.red;
+
+		/* Set model matrix */
+		GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
 
 		/* Draw front */
 		GLES20.glVertexAttribPointer(this.vertHandle, 3, GLES20.GL_FLOAT, false, 3*4, this.faceBuf);
