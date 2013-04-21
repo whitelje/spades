@@ -14,16 +14,23 @@ import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
+import android.opengl.Matrix;
 
 public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 {
 	/* Shader data */
 	private final String vertSource
-		= "attribute vec4 a_position;"
+		= "uniform   mat4 u_model;"
+		+ "uniform   mat4 u_view;"
+		+ "uniform   mat4 u_proj;"
+		+ "attribute vec4 a_position;"
 		+ "attribute vec2 a_mapping;"
 		+ "varying   vec2 v_mapping;"
 		+ "void main() {"
-		+ "  gl_Position = a_position;"
+		+ "  gl_Position = u_proj"
+		+ "              * u_model"
+		+ "              * u_view"
+		+ "              * a_position;"
 		+ "  v_mapping   = a_mapping;"
 		+ "}";
 
@@ -39,10 +46,10 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 
 	/* Drawing data */
 	private final float  vertCoords[] = {
-		-0.5f,  0.5f, 0.0f,
-		-0.5f, -0.5f, 0.0f,
-		 0.5f, -0.5f, 0.0f,
-		 0.5f,  0.5f, 0.0f,
+		-0.063f,  0.088f, 0f, // Standard poker size:
+		-0.063f, -0.088f, 0f, //   2.5in x 3.5in
+		 0.063f, -0.088f, 0f, //   63mm  x 88mm
+		 0.063f,  0.088f, 0f, //
 	};
 
 	private final float  mapCoords[] = {
@@ -68,9 +75,16 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 	private Resources    res;         // app resources
 	private int          program;     // opengl program
 
+	private float        model[];     // model matrix
+	private float        view[];      // view matrix
+	private float        proj[];      // projection matrix
+
 	private FloatBuffer  vertBuf;     // vertex position buffer
 	private FloatBuffer  mapBuf;      // texture mapping coord buffer
 
+	private int          modelHandle; // model matrix
+	private int          viewHandle;  // view matrix
+	private int          projHandle;  // projection matrix
 	private int          vertHandle;  // vertex positions
 	private int          mapHandle;   // texture mapping coords
 	private int          texHandle;   // texture data
@@ -139,6 +153,10 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 
 		this.res = context.getResources();
 
+		this.model = new float[4*4];
+		this.view  = new float[4*4];
+		this.proj  = new float[4*4];
+
 		this.face  = new int[52];
 
 		this.setEGLContextClientVersion(2);
@@ -163,6 +181,9 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		GLES20.glLinkProgram(program);
 
 		/* Get shaders attributes */
+		this.modelHandle = GLES20.glGetUniformLocation(program, "u_model");
+		this.viewHandle  = GLES20.glGetUniformLocation(program, "u_view");
+		this.projHandle  = GLES20.glGetUniformLocation(program, "u_proj");
 		this.vertHandle  = GLES20.glGetAttribLocation(program, "a_position");
 		this.mapHandle   = GLES20.glGetAttribLocation(program, "a_mapping");
 		this.texHandle   = GLES20.glGetUniformLocation(program, "u_texture");
@@ -196,6 +217,10 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		GLES20.glClearColor(0, 0, 0, 1);
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
+		GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
+		GLES20.glUniformMatrix4fv(this.viewHandle, 1, false, this.view, 0);
+		GLES20.glUniformMatrix4fv(this.projHandle, 1, false, this.proj, 0);
+
 		GLES20.glEnableVertexAttribArray(this.vertHandle);
 		GLES20.glEnableVertexAttribArray(this.mapHandle);
 		GLES20.glVertexAttribPointer(this.vertHandle,  3, GLES20.GL_FLOAT, false, 3*4, this.vertBuf);
@@ -217,5 +242,32 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		Os.debug("Cards: onSurfaceChanged");
 
 		GLES20.glViewport(0, 0, width, height);
+
+		Matrix.setIdentityM(this.model, 0);
+		Matrix.setIdentityM(this.view, 0);
+		Matrix.setIdentityM(this.proj, 0);
+
+		// Setup camera
+		float xang = 0.5f;
+		float yang = xang * ((float)height / (float)width);
+
+		Matrix.frustumM(this.proj, 0,
+				-1E-6f * xang, // left
+				1E-6f  * xang, // right
+				-1E-6f * yang, // bottom
+				1E-6f  * yang, // top
+				1E-6f,         // near
+				10f);          // far
+
+		Matrix.translateM(this.view, 0,
+				0, 0, -2.0f);
+		Matrix.rotateM(this.view, 0,
+				90f, 1, 0, 0);
+
+		// Set card position
+		Matrix.rotateM(this.view, 0,
+				-90f, 1, 0, 0);
+		Matrix.translateM(this.model, 0,
+				0, 0, 1.5f);
 	}
 }
