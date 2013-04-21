@@ -1,5 +1,8 @@
 package org.pileus.spades;
 
+import java.util.Map;
+import java.util.HashMap;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -28,8 +31,8 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		+ "varying   vec2 v_mapping;"
 		+ "void main() {"
 		+ "  gl_Position = u_proj"
-		+ "              * u_model"
 		+ "              * u_view"
+		+ "              * u_model"
 		+ "              * a_position;"
 		+ "  v_mapping   = a_mapping;"
 		+ "}";
@@ -45,11 +48,25 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		+ "}";
 
 	/* Drawing data */
-	private final float  vertCoords[] = {
-		-0.063f,  0.088f, 0f, // Standard poker size:
-		-0.063f, -0.088f, 0f, //   2.5in x 3.5in
-		 0.063f, -0.088f, 0f, //   63mm  x 88mm
-		 0.063f,  0.088f, 0f, //
+	private final float  faceCoords[] = {
+		-0.063f,  0.088f, 0.05f, // Standard poker size:
+		-0.063f, -0.088f, 0.05f, //   2.5in x 3.5in
+		 0.063f, -0.088f, 0.05f, //   63mm  x 88mm
+		 0.063f,  0.088f, 0.05f, //
+	};
+
+	private final float  backCoords[] = {
+		 0.063f,  0.088f, 0.05f, // Standard poker size:
+		 0.063f, -0.088f, 0.05f, //   2.5in x 3.5in
+		-0.063f, -0.088f, 0.05f, //   63mm  x 88mm
+		-0.063f,  0.088f, 0.05f, //
+	};
+
+	private final float  tableCoords[] = {
+		-0.75f,  0.75f, 0,
+		-0.75f, -0.75f, 0,
+		 0.75f, -0.75f, 0,
+		 0.75f,  0.75f, 0,
 	};
 
 	private final float  mapCoords[] = {
@@ -75,11 +92,13 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 	private Resources    res;         // app resources
 	private int          program;     // opengl program
 
-	private float        model[];     // model matrix
-	private float        view[];      // view matrix
-	private float        proj[];      // projection matrix
+	private float[]      model;       // model matrix
+	private float[]      view;        // view matrix
+	private float[]      proj;        // projection matrix
 
-	private FloatBuffer  vertBuf;     // vertex position buffer
+	private FloatBuffer  faceBuf;     // vertex positions for front of card
+	private FloatBuffer  backBuf;     // vertex positions for back of card
+	private FloatBuffer  tableBuf;    // vertex positions for table
 	private FloatBuffer  mapBuf;      // texture mapping coord buffer
 
 	private int          modelHandle; // model matrix
@@ -90,9 +109,15 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 	private int          texHandle;   // texture data
 	private int          colorHandle; // color data
 
-	private int          face[];      // card face textures
+	private int[]        face;        // card face textures
 	private int          red;         // red card back
 	private int          blue;        // blue card back
+	private int          table;       // table top texture
+
+	private Map<String,Integer> index;    // card name to index map
+
+	/* Properties */
+	public String[]      hand;        // cards to display
 
 	/* GLSurfaceView Methods */
 	public Cards(Context context)
@@ -107,6 +132,15 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		this.proj  = new float[4*4];
 
 		this.face  = new int[52];
+
+		this.hand  = new String[] {
+			"As", "7s", "6s",  "6h", "2h", "Ac",
+			"Kc", "3c", "10d", "9d", "8d", "7d", "2d"
+		};
+
+		this.index = new HashMap<String,Integer>(52);
+		for (int i = 0; i < 52; i++)
+			this.index.put(this.cards[i], i);
 
 		this.setEGLContextClientVersion(2);
 		this.setRenderer(this);
@@ -139,16 +173,19 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		this.colorHandle = GLES20.glGetUniformLocation(program, "u_color");
 
 		/* Create vertex array  */
-		this.vertBuf = this.loadBuffer(this.vertCoords);
-		this.mapBuf  = this.loadBuffer(this.mapCoords);
+		this.faceBuf  = this.loadBuffer(this.faceCoords);
+		this.backBuf  = this.loadBuffer(this.backCoords);
+		this.tableBuf = this.loadBuffer(this.tableCoords);
+		this.mapBuf   = this.loadBuffer(this.mapCoords);
 
 		/* Load textures */
 		for (int i = 0; i < 52; i++) {
 			String name = "card_" + this.cards[i].toLowerCase();
 			this.face[i] = this.loadTexture(name);
 		}
-		this.red  = this.loadTexture("card_red");
-		this.blue = this.loadTexture("card_blue");
+		this.red   = this.loadTexture("card_red");
+		this.blue  = this.loadTexture("card_blue");
+		this.table = this.loadTexture("table");
 
 		/* Debug */
 		Os.debug("Cards: onSurfaceCreate");
@@ -162,27 +199,42 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		/* Turn on the program */
 		GLES20.glUseProgram(program);
 
-		/* Draw */
+		/* Reset view */
 		GLES20.glClearColor(0, 0, 0, 1);
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
-		GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
+		/* Setup projection matricies */
 		GLES20.glUniformMatrix4fv(this.viewHandle, 1, false, this.view, 0);
 		GLES20.glUniformMatrix4fv(this.projHandle, 1, false, this.proj, 0);
 
+		/* Setup buffers objects */
 		GLES20.glEnableVertexAttribArray(this.vertHandle);
 		GLES20.glEnableVertexAttribArray(this.mapHandle);
-		GLES20.glVertexAttribPointer(this.vertHandle,  3, GLES20.GL_FLOAT, false, 3*4, this.vertBuf);
-		GLES20.glVertexAttribPointer(this.mapHandle, 2, GLES20.GL_FLOAT, false, 2*4, this.mapBuf);
 
+		/* Setup texturing */
+		GLES20.glEnable(GLES20.GL_CULL_FACE);
+		GLES20.glEnable(GLES20.GL_BLEND);
+		GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, this.red);
 		GLES20.glUniform1i(this.texHandle, 0);
 
-		GLES20.glUniform4fv(this.colorHandle, 1, this.color, 0);
+		/* Draw "Table" */
+		Matrix.setIdentityM(this.model, 0);
+		GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
+		this.drawTable();
 
-		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 4);
-		GLES20.glDisableVertexAttribArray(this.mapHandle);
+		/* Draw cards */
+		int num = this.hand.length;
+		for (int i = 0; i < num; i++) {
+			float ang = 5f * (i + (float)num/5 - (float)num/2f);
+			Matrix.setIdentityM(this.model, 0);
+			Matrix.rotateM(this.model, 0, 45f, 1f, 0f, 0f);
+			Matrix.translateM(this.model, 0, 0f, -0.3f, 1.20f);
+			Matrix.rotateM(this.model, 0, ang, 0f, 0f, -1f);
+			Matrix.translateM(this.model, 0, 0f, 0.15f, 0f);
+			GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
+			this.drawCard(this.hand[i]);
+		}
 	}
 
 	@Override
@@ -208,19 +260,12 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 				1E-6f,         // near
 				10f);          // far
 
-		Matrix.translateM(this.view, 0,
-				0, 0, -2.0f);
-		Matrix.rotateM(this.view, 0,
-				90f, 1, 0, 0);
-
-		// Set card position
-		Matrix.rotateM(this.view, 0,
-				-90f, 1, 0, 0);
-		Matrix.translateM(this.model, 0,
-				0, 0, 1.5f);
+		Matrix.rotateM(this.view, 0, 10f, 1, 0, 0);
+		Matrix.translateM(this.view, 0, 0, 0, -1.5f);
+		Matrix.rotateM(this.view, 0, -45f, 1, 0, 0);
 	}
 
-	/* Private methods */
+	/* Private loading methods */
 	private int loadShader(int type, String code)
 	{
 		Os.debug("Cards: loadShader");
@@ -269,5 +314,34 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		buf.position(0);
 
 		return buf;
+	}
+
+	/* Private drawing methods */
+	private void drawTable()
+	{
+		/* Draw table */
+		GLES20.glVertexAttribPointer(this.vertHandle, 3, GLES20.GL_FLOAT, false, 3*4, this.tableBuf);
+		GLES20.glVertexAttribPointer(this.mapHandle,  2, GLES20.GL_FLOAT, false, 2*4, this.mapBuf);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, this.table);
+		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 4);
+	}
+
+	private void drawCard(String name)
+	{
+		int idx   = this.index.get(name);
+		int front = this.face[idx];
+		int back  = this.red;
+
+		/* Draw front */
+		GLES20.glVertexAttribPointer(this.vertHandle, 3, GLES20.GL_FLOAT, false, 3*4, this.faceBuf);
+		GLES20.glVertexAttribPointer(this.mapHandle,  2, GLES20.GL_FLOAT, false, 2*4, this.mapBuf);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, front);
+		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 4);
+
+		/* Draw back */
+		GLES20.glVertexAttribPointer(this.vertHandle, 3, GLES20.GL_FLOAT, false, 3*4, this.backBuf);
+		GLES20.glVertexAttribPointer(this.mapHandle,  2, GLES20.GL_FLOAT, false, 2*4, this.mapBuf);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, back);
+		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 4);
 	}
 }
