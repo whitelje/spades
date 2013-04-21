@@ -18,6 +18,7 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
+import android.view.MotionEvent;
 
 public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 {
@@ -114,7 +115,13 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 	private int          blue;        // blue card back
 	private int          table;       // table top texture
 
-	private Map<String,Integer> index;    // card name to index map
+	private boolean      drag;        // currently in drag event
+	private int          pick;        // currently picked card
+	private float        xpos;        // x drag position (0=left   - 1-right)
+	private float        ypos;        // y drag position (0=bottom - 1-top)
+	private float        ylim;        // y limit for a play
+
+	private Map<String,Integer> index; // card name to index map
 
 	/* Properties */
 	public String[]      hand;        // cards to display
@@ -125,13 +132,15 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		super(context);
 		Os.debug("Cards: create");
 
-		this.res = context.getResources();
+		this.res   = context.getResources();
 
 		this.model = new float[4*4];
 		this.view  = new float[4*4];
 		this.proj  = new float[4*4];
 
 		this.face  = new int[52];
+
+		this.ylim  = 0.4f;
 
 		this.hand  = new String[] {
 			"As", "7s", "6s",  "6h", "2h", "Ac",
@@ -223,17 +232,44 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
 		this.drawTable();
 
-		/* Draw cards */
+		/* Draw hand */
 		int num = this.hand.length;
 		for (int i = 0; i < num; i++) {
-			float ang = 5f * (i + (float)num/5 - (float)num/2f);
+			if (this.drag && this.ypos >= this.ylim && i == this.pick)
+				continue;
+
 			Matrix.setIdentityM(this.model, 0);
+
 			Matrix.rotateM(this.model, 0, 45f, 1f, 0f, 0f);
 			Matrix.translateM(this.model, 0, 0f, -0.3f, 1.20f);
+
+			if (this.drag) {
+				float pct = (float)(i+0.5) / num;
+				float err = this.xpos - pct;
+				float y   = (float)this.ypos / this.ylim;
+				float lim = Math.min(Math.max(y,0),1);
+				float fcn = 0.1f
+					* (float)Math.exp(-10*num*Math.pow(y*err,2))
+					* (1f-(float)Math.pow(1-lim, 2));
+				Matrix.translateM(this.model, 0, 0, fcn, 0);
+			}
+			float left  = -20f + 20f*(1f/num);
+			float right =  54f - 54f*(1f/num);
+			float ang   = left + i*(right-left)/num;
 			Matrix.rotateM(this.model, 0, ang, 0f, 0f, -1f);
 			Matrix.translateM(this.model, 0, 0f, 0.15f, 0f);
+
 			GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
 			this.drawCard(this.hand[i]);
+		}
+
+		/* Draw selected card */
+		if (this.drag && this.ypos >= this.ylim) {
+			Matrix.setIdentityM(this.model, 0);
+			Matrix.rotateM(this.model, 0, 45f, 1f, 0f, 0f);
+			Matrix.translateM(this.model, 0, 0f, 0f, 1.20f);
+			GLES20.glUniformMatrix4fv(this.modelHandle, 1, false, this.model, 0);
+			this.drawCard(this.hand[this.pick]);
 		}
 	}
 
@@ -263,6 +299,41 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		Matrix.rotateM(this.view, 0, 10f, 1, 0, 0);
 		Matrix.translateM(this.view, 0, 0, 0, -1.5f);
 		Matrix.rotateM(this.view, 0, -45f, 1, 0, 0);
+	}
+
+	@Override
+	public boolean onTouchEvent(MotionEvent event)
+	{
+		boolean up   = event.getActionMasked() == MotionEvent.ACTION_UP;
+
+		float x =    event.getX() / this.getWidth();
+		float y = 1-(event.getY() / this.getHeight());
+
+		this.ypos = y;
+		if (y < this.ylim) {
+			int num = this.hand.length;
+			this.xpos = x;
+			this.pick = (int)Math.floor((x*num));
+			if (this.pick <    0) this.pick = 0;
+			if (this.pick >= num) this.pick = num-1;
+		}
+		if (y < this.ylim && !this.drag) {
+			Os.debug("Cards: onTouchEvent - starting drag");
+			this.drag = true;
+		}
+		if (this.drag) {
+			Os.debug("Cards: onTouchEvent - move "
+					+ x + "," + y);
+			this.requestRender();
+		}
+		if (y >= this.ylim && this.drag && up) {
+			Os.debug("Cards: onTouchEvent - playing card");
+		}
+		if (up) {
+			Os.debug("Cards: onTouchEvent - ending drag");
+			this.drag = false;
+		}
+		return true;
 	}
 
 	/* Private loading methods */
