@@ -37,13 +37,17 @@ uninstall:
 	adb uninstall $(PACKAGE)
 	rm bin/install.stamp
 
-png-cards:
-	git checkout cards-png -- 'res/drawable/card_*.png'
-	git reset    HEAD      -- 'res/drawable/card_*.png'
-
-svg-cards:
-	git checkout cards-svg -- 'opt/drawable/card_*.svg'
-	git reset    HEAD      -- 'opt/drawable/card_*.svg'
+graphics:
+	git checkout graphics  --    \
+	        'opt/drawable/*.svg' \
+	        'opt/drawable/*.xcf' \
+	        'res/drawable/*.png' \
+	        'res/drawable/*.jpg'
+	git reset HEAD --            \
+	        'opt/drawable/*.svg' \
+	        'opt/drawable/*.xcf' \
+	        'res/drawable/*.png' \
+	        'res/drawable/*.jpg'
 
 convert:
 	for svg in opt/drawable/*.svg; do        \

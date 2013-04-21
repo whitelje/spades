@@ -8,5 +8,7 @@ gen/
 obj/
 
 # Leave out cards for now
-res/drawable/card_*.png
-opt/drawable/card_*.svg
+opt/drawable/*.svg
+opt/drawable/*.xcf
+res/drawable/*.png
+res/drawable/*.jpg
