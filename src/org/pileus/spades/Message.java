@@ -9,6 +9,8 @@ public class Message
 	/* Enumerations */
 	enum Type {
 		OTHER,    // Unknown message type
+		JOIN,     // Join channel
+		PART,     // Leave channel
 		PRIVMSG,  // Private message
 		TOPIC,    // Display current topic
 		NAMES,    // Display user names
@@ -32,10 +34,12 @@ public class Message
 	private final  String  reMsg  = "(:([^ ]+) +)?(([A-Z0-9]+) +)(([^ ]+)[= ]+)?(([^: ]+) *)?(:(.*))?";
 	private final  String  reFrom = "([^! ]+)!.*";
 	private final  String  reTo   = "(([^ :,]*)[:,] *)?(.*)";
+	private final  String  reCmd  = "/([a-z]+)( +(.*))?";
 
 	private static Pattern ptMsg  = null;
 	private static Pattern ptFrom = null;
 	private static Pattern ptTo   = null;
+	private static Pattern ptCmd  = null;
 
 	/* Public data */
 	public Date    time = null;
@@ -64,13 +68,43 @@ public class Message
 	public Message(String dst, String from, String msg)
 	{
 		this.time = new Date();
-		this.type = Type.PRIVMSG;
-		this.cmd  = "PRIVMSG";
 		this.how  = How.SENT;
-		this.dst  = dst;
 		this.from = from;
-		this.msg  = msg;
-		this.line = this.cmd + " " + this.dst + " :" + this.msg;
+
+		if (msg.charAt(0) == '/') {
+			if (ptCmd == null)
+				ptCmd = Pattern.compile(reCmd);
+			Matcher mr = ptCmd.matcher(msg);
+			if (!mr.matches())
+				return;
+
+			String cmd = notnull(mr.group(1));
+			String arg = notnull(mr.group(3));
+
+			if (cmd.matches("join")) {
+				Os.debug("Message: /join");
+				this.type = Type.JOIN;
+				this.cmd  = "JOIN";
+				this.msg  = arg;
+				this.line = this.cmd + " :" + arg;
+			}
+			if (cmd.matches("part")) {
+				Os.debug("Message: /part");
+				this.type = Type.PART;
+				this.cmd  = "PART";
+				this.msg  = arg;
+				this.line = this.cmd + " :" + arg;
+			}
+			if (this.line == null) {
+				Os.debug("Message: unknown command");
+			}
+		} else {
+			this.type = Type.PRIVMSG;
+			this.cmd  = "PRIVMSG";
+			this.dst  = dst;
+			this.msg  = msg;
+			this.line = this.cmd + " " + this.dst + " :" + this.msg;
+		}
 	}
 
 	public Message(String line, String name)

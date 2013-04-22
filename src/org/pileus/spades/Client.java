@@ -102,7 +102,11 @@ public class Client
 
 	public Message send(String txt)
 	{
+		if (!this.ready)
+			return null;
 		Message msg = new Message(this.channel, this.name, txt);
+		if (msg.type == Message.Type.JOIN)
+			this.channel = msg.msg;
 		this.raw(msg.line);
 		return msg;
 	}
