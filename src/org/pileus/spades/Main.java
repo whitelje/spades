@@ -28,7 +28,7 @@ public class Main extends Activity
 	private Messenger    messenger;
 	private Task         task;
 	private Toast        toast;
-	private boolean      ready;
+	private boolean      running;
 	private String       topic;
 	private String       names;
 	private Cards        cards;
@@ -110,16 +110,21 @@ public class Main extends Activity
 	}
 
 	/* Private handler methods */
-	private void onRegister(Object obj)
+	private void onRegister(Task task)
 	{
 		Os.debug("Main: onRegister");
-		this.task = (Task)obj;
+		this.task = task;
+		this.running = this.task.isRunning();
+		for (Object obj : this.task.getLog()) {
+			if (String.class.isInstance(obj))
+				this.notice((String)obj);
+			if (Message.class.isInstance(obj))
+				this.onMessage((Message)obj);
+		}
 	}
 
-	private void onMessage(Object obj)
+	private void onMessage(Message msg)
 	{
-		Message msg = (Message)obj;
-
 		// Debug
 		this.debug.append("> " + msg.line + "\n");
 		this.dscroll.smoothScrollTo(0, this.debug.getBottom());
@@ -161,16 +166,31 @@ public class Main extends Activity
 	}
 
 	/* Private service methods */
-	private void startService()
+	private void register()
 	{
-		Os.debug("Main: startService");
+		Os.debug("Main: register");
 		startService(new Intent(this, Task.class)
+				.putExtra("Command",   Task.REGISTER)
 				.putExtra("Messenger", this.messenger));
 	}
 
-	private void stopService()
+	private void connect()
 	{
-		Os.debug("Main: stopService");
+		Os.debug("Main: connect");
+		startService(new Intent(this, Task.class)
+				.putExtra("Command", Task.CONNECT));
+		this.running = true;
+	}
+
+	private void disconnect()
+	{
+		Os.debug("Main: disconnect");
+		startService(new Intent(this, Task.class)
+				.putExtra("Command", Task.DISCONNECT));
+	}
+
+	private void exit()
+	{
 		stopService(new Intent(this, Task.class));
 	}
 
@@ -237,6 +257,9 @@ public class Main extends Activity
 			this.cards = new Cards(this);
 			this.spades.addView(cards);
 			
+			// Attach to background service
+			this.register();
+
 		} catch (Exception e) {
 			Os.debug("Error setting content view", e);
 			return;
@@ -296,8 +319,8 @@ public class Main extends Activity
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu)
 	{
-		menu.findItem(R.id.connect).setVisible(!this.ready);
-		menu.findItem(R.id.disconnect).setVisible(this.ready);
+		menu.findItem(R.id.connect).setVisible(!this.running);
+		menu.findItem(R.id.disconnect).setVisible(this.running);
 		return true;
 	}
 
@@ -306,16 +329,16 @@ public class Main extends Activity
 	{
 		switch (item.getItemId()) {
 			case R.id.connect:
-				this.startService();
+				this.connect();
 				return true;
 			case R.id.disconnect:
-				this.stopService();
+				this.disconnect();
 				return true;
 			case R.id.settings:
 				this.startActivity(new Intent(this, Prefs.class));
 				return true;
 			case R.id.exit:
-				this.stopService();
+				this.exit();
 				this.finish();
 				return true;
 			default:
@@ -330,16 +353,16 @@ public class Main extends Activity
 		{
 			switch (msg.what) {
 				case Task.REGISTER:
-					Main.this.onRegister(msg.obj);
+					Main.this.onRegister((Task)msg.obj);
 					break;
 				case Task.MESSAGE:
-					Main.this.onMessage(msg.obj);
+					Main.this.onMessage((Message)msg.obj);
 					break;
 				case Task.CONNECT:
-					Main.this.ready = true;
+					Main.this.running = true;
 					break;
 				case Task.DISCONNECT:
-					Main.this.ready = false;
+					Main.this.running = false;
 					break;
 				case Task.NOTIFY:
 					Main.this.onNotify((String)msg.obj);

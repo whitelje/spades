@@ -1,5 +1,10 @@
 package org.pileus.spades;
 
+import java.util.List;
+import java.util.LinkedList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -25,10 +30,17 @@ public class Task extends Service implements Runnable
 	private Messenger         messenger;
 	private Thread            thread;
 	private Client            client;
+	private List<Object>      log;
+	private Lock              lock;
 
 	/* Private methods */
 	private void command(int cmd, Object value)
 	{
+		if (cmd == MESSAGE || cmd == NOTIFY) {
+			this.lock.lock();
+			this.log.add(value);
+			this.lock.unlock();
+		}
 		try {
 			android.os.Message msg = android.os.Message.obtain();
 			msg.what = cmd;
@@ -53,6 +65,34 @@ public class Task extends Service implements Runnable
 		this.startForeground(1, note);
 	}
 
+	private void handle(int cmd, Messenger mgr)
+	{
+		// Setup communication with Main
+		if (cmd == REGISTER) {
+			Os.debug("Task: handle - register");
+			this.messenger = mgr;
+			this.command(REGISTER, this);
+		}
+
+		// Create client thread
+		if (cmd == CONNECT && this.thread == null) {
+			Os.debug("Task: handle - connect");
+			this.thread = new Thread(this);
+			this.thread.start();
+		}
+
+		// Stop client thread
+		if (cmd == DISCONNECT && this.thread != null) {
+			Os.debug("Task: handle - register");
+			try {
+				this.client.abort();
+				this.thread.join();
+			} catch (Exception e) {
+				Os.debug("Task: error stopping service", e);
+			}
+		}
+	}
+
 	/* Public methods */
 	public Message send(String txt)
 	{
@@ -62,6 +102,19 @@ public class Task extends Service implements Runnable
 		if (msg != null)
 			this.command(MESSAGE, msg);
 		return msg;
+	}
+
+	public List<Object> getLog()
+	{
+		this.lock.lock();
+		LinkedList<Object> out = new LinkedList<Object>(this.log);
+		this.lock.unlock();
+		return out;
+	}
+
+	public boolean isRunning()
+	{
+		return this.thread != null;
 	}
 
 	/* Runnable methods */
@@ -138,6 +191,8 @@ public class Task extends Service implements Runnable
 		Os.debug("Task: onCreate");
 		super.onCreate();
 
+		this.log    = new LinkedList<Object>();
+		this.lock   = new ReentrantLock();
 		this.client = new Client();
 		this.prefs  = PreferenceManager.getDefaultSharedPreferences(this);
 		PreferenceManager.setDefaultValues(this, R.xml.prefs, false);
@@ -147,12 +202,7 @@ public class Task extends Service implements Runnable
 	public void onDestroy()
 	{
 		Os.debug("Task: onDestroy");
-		try {
-			this.client.abort();
-			this.thread.join();
-		} catch (Exception e) {
-			Os.debug("Task: error stopping service", e);
-		}
+		this.handle(DISCONNECT, null);
 	}
 
 	@Override
@@ -160,16 +210,9 @@ public class Task extends Service implements Runnable
 	{
 		Os.debug("Task: onStart");
 		super.onStart(intent, startId);
-
-		// Setup communication with Main
-		this.messenger = (Messenger)intent.getExtras().get("Messenger");
-		this.command(REGISTER, this);
-
-		// Create client thread
-		if (this.thread == null) {
-			this.thread = new Thread(this);
-			this.thread.start();
-		}
+		int       cmd = intent.getExtras().getInt("Command");
+		Messenger mgr = (Messenger)intent.getExtras().get("Messenger");
+		this.handle(cmd, mgr);
 	}
 
 	@Override

@@ -80,7 +80,7 @@ convert:
 
 $(OBJ): $(SRC) $(GEN) | obj
 	@echo "JAVAC  $@"
-	@javac -g                         \
+	@javac -g -Xlint:unchecked        \
 		-bootclasspath $(ANDROID) \
 		-encoding      UTF-8      \
 		-source        1.5        \
