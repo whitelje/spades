@@ -32,6 +32,7 @@ public class Main extends Activity
 	private String       topic;
 	private String       names;
 	private Cards        cards;
+	private Spades       game;
 
 	/* Widgets */
 	private TabHost      window;
@@ -113,7 +114,8 @@ public class Main extends Activity
 	private void onRegister(Task task)
 	{
 		Os.debug("Main: onRegister");
-		this.task = task;
+		this.task      = task;
+		this.game.task = task;
 		this.running = this.task.isRunning();
 		for (Object obj : this.task.getLog()) {
 			if (String.class.isInstance(obj))
@@ -133,6 +135,7 @@ public class Main extends Activity
 		switch (msg.type) {
 			case PRIVMSG:
 				this.display(msg);
+				this.game.onMessage(msg);
 				break;
 			case TOPIC:
 				if (!msg.txt.equals(this.topic))
@@ -253,8 +256,13 @@ public class Main extends Activity
 					.setIndicator("Debug")
 					.setContent(R.id.debug));
 
-			// Setup OpenGL view
+			// Setup Spades game and cards view
+			this.game  = new Spades();
 			this.cards = new Cards(this);
+
+			this.game.cards = this.cards;
+			this.cards.game = this.game;
+
 			this.spades.addView(cards);
 			
 			// Attach to background service

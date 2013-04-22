@@ -124,6 +124,7 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 	private Map<String,Integer> index; // card name to index map
 
 	/* Properties */
+	public Spades        game;        // the spades game
 	public String[]      hand;        // cards to display
 	public String[]      pile;        // played cards to display
 
@@ -293,6 +294,7 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		}
 		if (y >= this.ylim && this.drag && up) {
 			//Os.debug("Cards: onTouchEvent - playing card");
+			this.game.onPlay(this.hand[this.pick]);
 		}
 		if (up) {
 			//Os.debug("Cards: onTouchEvent - ending drag");
