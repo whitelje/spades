@@ -208,7 +208,7 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 	@Override
 	public void onDrawFrame(GL10 unused)
 	{
-		Os.debug("Cards: onDrawFrame");
+		//Os.debug("Cards: onDrawFrame");
 
 		/* Turn on the program */
 		GLES20.glUseProgram(program);
@@ -270,7 +270,7 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 	@Override
 	public boolean onTouchEvent(MotionEvent event)
 	{
-		boolean up   = event.getActionMasked() == MotionEvent.ACTION_UP;
+		boolean up = event.getActionMasked() == MotionEvent.ACTION_UP;
 
 		float x =    event.getX() / this.getWidth();
 		float y = 1-(event.getY() / this.getHeight());
@@ -284,19 +284,18 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 			if (this.pick >= num) this.pick = num-1;
 		}
 		if (y < this.ylim && !this.drag) {
-			Os.debug("Cards: onTouchEvent - starting drag");
+			//Os.debug("Cards: onTouchEvent - starting drag");
 			this.drag = true;
 		}
 		if (this.drag) {
-			Os.debug("Cards: onTouchEvent - move "
-					+ x + "," + y);
+			//Os.debug("Cards: onTouchEvent - move " + x + "," + y);
 			this.requestRender();
 		}
 		if (y >= this.ylim && this.drag && up) {
-			Os.debug("Cards: onTouchEvent - playing card");
+			//Os.debug("Cards: onTouchEvent - playing card");
 		}
 		if (up) {
-			Os.debug("Cards: onTouchEvent - ending drag");
+			//Os.debug("Cards: onTouchEvent - ending drag");
 			this.drag = false;
 		}
 		return true;
@@ -315,7 +314,7 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 
 	private int loadTexture(String name)
 	{
-		Os.debug("Cards: loadTexture - " + name);
+		//Os.debug("Cards: loadTexture - " + name);
 
 		final int[] tex = new int[1];
 
