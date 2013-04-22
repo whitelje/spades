@@ -257,14 +257,14 @@ public class Main extends Activity
 					.setContent(R.id.debug));
 
 			// Setup Spades game and cards view
-			this.game  = new Spades();
+			this.game  = new Spades("rhawk");
 			this.cards = new Cards(this);
 
 			this.game.cards = this.cards;
 			this.cards.game = this.game;
 
 			this.spades.addView(cards);
-			
+
 			// Attach to background service
 			this.register();
 

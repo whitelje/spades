@@ -144,14 +144,8 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 
 		this.ylim  = 0.4f;
 
-		this.hand  = new String[] {
-			"As", "7s", "6s",  "6h", "2h", "Ac",
-			"Kc", "3c", "10d", "9d", "8d", "7d", "2d"
-		};
-
-		this.pile  = new String[] {
-			"As", "7s", "6s"
-		};
+		this.hand  = "As Ks Qs Js 10s 9s 8s 7s 6s 5s 4s 3s 2s".split(" ");
+		this.pile  = "Ah Ac Ad".split(" ");
 
 		this.index = new HashMap<String,Integer>(52);
 		for (int i = 0; i < 52; i++)

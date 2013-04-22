@@ -58,6 +58,14 @@ public class Message
 	public String  to   = "";
 	public String  txt  = "";
 
+	/* Static methods */
+	public static String clean(String msg)
+	{
+		String num = "0?[0-9]|1[0-5]";
+		return msg.replaceAll("[\\002\\011\\017\\025]", "")
+		          .replaceAll("[\\003\\013]("+num+")(,"+num+")?", "");
+	}
+
 	/* Private methods */
 	private String notnull(String string)
 	{

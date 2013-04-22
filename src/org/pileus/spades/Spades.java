@@ -2,19 +2,49 @@ package org.pileus.spades;
 
 public class Spades
 {
-	/* Private data */
-	public Task  task;
-	public Cards cards;
+	/* Properties */
+	public  Task    task;
+	public  Cards   cards;
+	public  String  admin;
+
+	/* Static methods */
+	private static String[] getCards(String msg, String regex)
+	{
+		String cards = Message.clean(msg)
+			.replaceAll(regex, "$1")
+			.replaceAll(",", " ")
+			.replaceAll("♠", "s")
+			.replaceAll("♥", "h")
+			.replaceAll("♦", "d")
+			.replaceAll("♣", "c");
+		Os.debug("Cards: getCards - [" + cards + "]:" + Os.base64(cards));
+		return cards.split("\\s+");
+	}
 
 	/* Widget callback functions */
-	public Spades()
+	public Spades(String admin)
 	{
+		this.admin = admin;
 	}
 
 	/* IRC Callbacks */
 	public void onMessage(Message msg)
 	{
-		Os.debug("Spades: onMessage");
+		Os.debug("Spades: onMessage - " + msg.msg);
+		if (msg.type != Message.Type.PRIVMSG)
+			return;
+		if (!msg.from.equals(this.admin))
+			return;
+
+		String txt = msg.txt;
+		if (txt.startsWith("You have: ")) {
+			this.cards.hand = Spades.getCards(txt, "You have: (.*)");
+			this.cards.requestRender();
+		}
+		if (txt.matches("turn!")) {
+			this.cards.pile = Spades.getCards(txt, ".*turn! (.*)");
+			this.cards.requestRender();
+		}
 	}
 
 	/* UI Callbacks */
