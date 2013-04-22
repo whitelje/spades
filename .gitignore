@@ -1,3 +1,6 @@
+# Settings
+config.mk
+
 # Vim junk
 *~
 *.swp

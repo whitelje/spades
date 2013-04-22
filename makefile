@@ -1,7 +1,9 @@
+-include config.mk
+
 # Settings
-ANDROID := /opt/android-sdk-update-manager/platforms/android-10/android.jar
-PACKAGE := org.pileus.spades
-OUTPUT  := bin/Spades.apk
+ANDROID ?= /opt/android-sdk-update-manager/platforms/android-10/android.jar
+PACKAGE ?= org.pileus.spades
+OUTPUT  ?= bin/Spades.apk
 
 # Sources
 RES     := $(shell find res -name '*.xml')
@@ -14,15 +16,14 @@ OBJ     := $(subst .java,.class,   \
                 $(GEN:gen/%=obj/%))
 
 # Targets
-default: run
+all: $(OUTPUT)
 
 compile: $(OBJ)
-
-debug: $(OUTPUT)
 
 clean:
 	rm -rf bin gen obj
 
+# ADB targets
 logcat:
 	adb logcat Spades:D AndroidRuntime:E '*:S'
 
@@ -37,17 +38,20 @@ uninstall:
 	adb uninstall $(PACKAGE)
 	rm bin/install.stamp
 
+# Graphics targets
 graphics:
 	git checkout graphics  --    \
 	        'opt/drawable/*.svg' \
 	        'opt/drawable/*.xcf' \
 	        'res/drawable/*.png' \
-	        'res/drawable/*.jpg'
+	        'res/drawable/*.jpg' \
+	        || true
 	git reset HEAD --            \
 	        'opt/drawable/*.svg' \
 	        'opt/drawable/*.xcf' \
 	        'res/drawable/*.png' \
-	        'res/drawable/*.jpg'
+	        'res/drawable/*.jpg' \
+	        || true
 
 convert:
 	for svg in opt/drawable/*.svg; do        \
@@ -90,6 +94,11 @@ $(OBJ): $(SRC) $(GEN) | obj
 		$+
 
 $(GEN): AndroidManifest.xml $(RES) | gen
+	@if ! [ -d "res/drawable" ]; then \
+		echo Please run           \
+		     \'make graphics\';   \
+		exit 1;                   \
+	fi
 	@echo "GEN    $@"
 	@aapt package -f -m               \
 		-I $(ANDROID)             \
@@ -100,3 +109,6 @@ $(GEN): AndroidManifest.xml $(RES) | gen
 # Directories
 bin gen obj:
 	@mkdir -p $@
+
+# Use parallel javac instead
+.NOTPARALLEL:
