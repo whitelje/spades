@@ -6,6 +6,6 @@
 		android:title="Disconnect" />
 	<item android:id="@+id/settings"
 		android:title="Settings" />
-	<item android:id="@+id/exit"
-		android:title="Exit" />
+	<item android:id="@+id/quit"
+		android:title="Quit" />
 </menu>

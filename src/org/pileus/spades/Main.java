@@ -193,9 +193,13 @@ public class Main extends Activity
 				.putExtra("Command", Task.DISCONNECT));
 	}
 
-	private void exit()
+	private void quit()
 	{
 		stopService(new Intent(this, Task.class));
+		Intent intent = new Intent(Intent.ACTION_MAIN);
+		intent.addCategory(Intent.CATEGORY_HOME);
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivity(intent);
 	}
 
 	/* Widget callback functions */
@@ -351,9 +355,8 @@ public class Main extends Activity
 			case R.id.settings:
 				this.startActivity(new Intent(this, Prefs.class));
 				return true;
-			case R.id.exit:
-				this.exit();
-				this.finish();
+			case R.id.quit:
+				this.quit();
 				return true;
 			default:
 				return false;
