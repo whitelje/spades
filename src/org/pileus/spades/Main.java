@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Messenger;
+import android.preference.PreferenceManager;
 import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
 import android.text.format.DateFormat;
@@ -217,6 +218,9 @@ public class Main extends Activity
 			super.onCreate(savedInstanceState);
 			Os.debug("Main: onCreate");
 
+			// Setup preferences
+			PreferenceManager.setDefaultValues(this, R.xml.prefs, false);
+
 			// Setup main layout
 			this.setContentView(R.layout.main);
 
@@ -257,7 +261,9 @@ public class Main extends Activity
 					.setContent(R.id.debug));
 
 			// Setup Spades game and cards view
-			this.game  = new Spades("rhawk");
+			this.game  = new Spades(PreferenceManager
+					.getDefaultSharedPreferences(this)
+					.getString("pref_referee", "rhawk"));
 			this.cards = new Cards(this);
 
 			this.game.cards = this.cards;

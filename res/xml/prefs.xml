@@ -26,7 +26,12 @@
 			android:key="pref_channel"
 			android:summary="IRC Channel to Join"
 			android:title="Channel"
-			android:defaultValue="#rhtest" />
+			android:defaultValue="#rhspades" />
+		<EditTextPreference
+			android:key="pref_referee"
+			android:summary="Name of the bot hosting the game"
+			android:title="Referee"
+			android:defaultValue="rhawk" />
 	</PreferenceCategory>
 	<PreferenceCategory
 		android:title="Authentication settings"
