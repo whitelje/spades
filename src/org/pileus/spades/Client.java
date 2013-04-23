@@ -5,6 +5,14 @@ import java.net.*;
 
 public class Client
 {
+	/* Constnats */
+	enum State {
+		INIT,
+		SETUP,
+		READY,
+		ABORT,
+	};
+
 	/* Preference data */
 	public  String         server   = "irc.freenode.net";
 	public  int            port     = 6667;
@@ -17,7 +25,7 @@ public class Client
 	public  String         hostname = "localhost";
 
 	/* Public data */
-	public  boolean        ready    = false;
+	public  State          state    = State.INIT;
 	public  String         name     = "";
 
        	/* Connection data */
@@ -59,7 +67,9 @@ public class Client
 		Os.debug("Client: connect");
 
 		try {
-			this.socket = new Socket(this.server, this.port);
+			this.state  = State.SETUP;
+			this.socket = new Socket();
+			this.socket.connect(new InetSocketAddress(this.server, this.port));
 			this.input  = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
 			this.output = new PrintWriter(this.socket.getOutputStream());
 		} catch (Exception e) {
@@ -76,22 +86,25 @@ public class Client
 		return true;
 	}
 
-	public boolean abort()
+	public void abort()
 	{
 		Os.debug("Client: abort");
-		try {
-			this.socket.close();
-			this.ready = false;
-			return true;
-		} catch (Exception e) {
-			Os.debug("Client: error closing socket", e);
-			return false;
-		}
+		this.state = State.ABORT;
+		this.validate();
+	}
+
+	public void reset()
+	{
+		Os.debug("Client: reset");
+		this.state = State.INIT;
 	}
 
 	public void raw(String line)
 	{
 		try {
+			if (this.validate() != State.SETUP &&
+			    this.validate() != State.READY)
+				return;
 			Os.debug("< " + line);
 			this.output.println(line);
 			this.output.flush();
@@ -102,7 +115,7 @@ public class Client
 
 	public Message send(String txt)
 	{
-		if (!this.ready)
+		if (this.validate() != State.READY)
 			return null;
 		Message msg = new Message(this.channel, this.name, txt);
 		if (msg.type == Message.Type.JOIN)
@@ -114,7 +127,10 @@ public class Client
 	public Message recv()
 	{
 		try {
-			String line = input.readLine();
+			if (this.validate() != State.SETUP &&
+			    this.validate() != State.READY)
+				return null;
+			String line = this.input.readLine();
 			if (line == null)
 				return null;
 			Os.debug("> " + line);
@@ -124,22 +140,37 @@ public class Client
 				this.dosasl(msg);
 			return msg;
 		} catch (SocketException e) {
-			this.ready = false;
+			this.state = State.INIT;
 			return null;
 		} catch (Exception e) {
-			this.ready = false;
+			this.state = State.INIT;
 			Os.debug("Client: error in recv", e);
 			return null;
 		}
 	}
 
 	/* Private methods */
+	private State validate()
+	{
+		try {
+			if (this.state == State.ABORT) {
+				if (this.socket != null) {
+					this.socket.close();
+					this.state = State.INIT;
+				}
+			}
+		} catch (Exception e) {
+			Os.debug("Client: error closing socket", e);
+		}
+		return this.state;
+	}
+
 	private void process(Message msg)
 	{
 		if (msg.cmd.equals("001") && msg.msg.matches("Welcome.*")) {
 			this.raw("JOIN "  + this.channel);
 			this.raw("TOPIC " + this.channel);
-			this.ready = true;
+			this.state = State.READY;
 		}
 		if (msg.cmd.equals("433")) {
 			this.name   = this.nickname + this.mangle;

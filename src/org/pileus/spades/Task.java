@@ -149,7 +149,7 @@ public class Task extends Service implements Runnable
 		}
 
 		// Wait for login
-		while (!this.client.ready) {
+		while (this.client.state == Client.State.SETUP) {
 			Message msg = this.client.recv();
 			if (msg == null)
 				break;
@@ -157,7 +157,7 @@ public class Task extends Service implements Runnable
 		}
 
 		// Notify connection status
-		if (this.client.ready) {
+		if (this.client.state == Client.State.READY) {
 			this.command(CONNECT, null);
 			this.notify("Connected", android.R.drawable.presence_online);
 		} else {
@@ -166,7 +166,7 @@ public class Task extends Service implements Runnable
 		}
 
 		// Process messages
-		while (this.client.ready) {
+		while (this.client.state == Client.State.READY) {
 			Message msg = this.client.recv();
 			if (msg == null)
 				break;

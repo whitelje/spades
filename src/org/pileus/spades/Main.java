@@ -191,6 +191,7 @@ public class Main extends Activity
 		Os.debug("Main: disconnect");
 		startService(new Intent(this, Task.class)
 				.putExtra("Command", Task.DISCONNECT));
+		this.running = false;
 	}
 
 	private void quit()
