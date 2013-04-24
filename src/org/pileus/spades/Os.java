@@ -2,6 +2,7 @@ package org.pileus.spades;
 
 import android.util.Log;
 import android.util.Base64;
+import android.graphics.Color;
 
 public class Os
 {
@@ -19,5 +20,10 @@ public class Os
 	public static String base64(String txt)
 	{
 		return Base64.encodeToString(txt.getBytes(), 0);
+	}
+
+	public static int getColor(String hex)
+	{
+		return Color.parseColor("#"+hex);
 	}
 }

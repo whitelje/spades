@@ -37,12 +37,14 @@ public class Message
 		public int     code;
 		public String  hex;
 		public String  name;
+		public int     color;
 
 		public Color(int code, String hex, String name)
 		{
 			this.code  = code;
 			this.hex   = hex;
 			this.name  = name;
+			this.color = Os.getColor(hex);
 		}
 	};
 

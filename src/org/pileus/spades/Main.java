@@ -2,13 +2,20 @@ package org.pileus.spades;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Messenger;
 import android.preference.PreferenceManager;
-import android.text.Html;
-import android.text.method.ScrollingMovementMethod;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.format.DateFormat;
+import android.text.style.BackgroundColorSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StrikethroughSpan;
+import android.text.style.StyleSpan;
+import android.text.style.UnderlineSpan;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -51,64 +58,56 @@ public class Main extends Activity
 	/* Private helper methods */
 	private void notice(String text)
 	{
-		this.log.append(Html.fromHtml("<b>*** " + text + "</b><br />"));
+		String    msg  = "*** " + text + "\n";
+		Spannable span = new SpannableString(msg);
+		span.setSpan(new StyleSpan(Typeface.BOLD), 0, msg.length(), 0);
+		this.log.append(span);
 	}
 
 	private void display(Message msg)
 	{
-		String when = DateFormat.format("hh:mm:ss", msg.time).toString();
-		String from = String.format("<font color=\"#ff88ff\">%s</font>", msg.from);
-		String text = msg.msg;
-		String fmt  = null;
+		String date = DateFormat.format("hh:mm:ss", msg.time).toString();
+		String text = String.format("(%s) %s: %s\n", date, msg.from, msg.msg);
+		Spannable span = new SpannableString(text);
 
-		// Do IRC Colors - only partly works
-		String fg = "<font color=\"<$1>\">";
-		text = text
-			.replaceAll("&", "&amp;")
-			.replaceAll("<", "&lt;")
-			.replaceAll(">", "&gt;");
-		text = text
-			.replaceAll("\\002", "<b>")             // bold
-			.replaceAll("\\011", "<i>")             // italic
-			.replaceAll("\\025", "<u>");            // underline
-		text = text
-			.replaceAll("\\003(\\d+)(,\\d+)?", fg)  // color
-			.replaceAll("\\013(\\d+)(,\\d+)?", fg); // color
-		text = text
-			.replaceAll("<0?0>", "#000000")         // White
-			.replaceAll("<0?1>", "#000000")         // Black
-			.replaceAll("<0?2>", "#000080")         // Navy Blue
-			.replaceAll("<0?3>", "#008000")         // Green
-			.replaceAll("<0?4>", "#FF0000")         // Red
-			.replaceAll("<0?5>", "#804040")         // Brown
-			.replaceAll("<0?6>", "#8000FF")         // Purple
-			.replaceAll("<0?7>", "#808000")         // Olive
-			.replaceAll("<0?8>", "#FFFF00")         // Yellow
-			.replaceAll("<0?9>", "#00FF00")         // Lime Green
-			.replaceAll("<10>",  "#008080")         // Teal
-			.replaceAll("<11>",  "#00FFFF")         // Aqua Light
-			.replaceAll("<12>",  "#0000FF")         // Royal Blue
-			.replaceAll("<13>",  "#FF00FF")         // Hot Pink
-			.replaceAll("<14>",  "#808080")         // Dark Gray
-			.replaceAll("<15>",  "#C0C0C0");        // Light Gray
+		// Determin positions
+		int de  = 1 + date.length() + 1;
+		int ne  = de + 1 + msg.from.length() + 1;
+		int pos = ne + 1;
 
-		// Message formatting
-		switch (msg.how) {
-			case DIRECT:
-			case MENTION:
-			case PRIVMSG:
-				fmt  = "<b>(%s) %s: %s</b>";
-				break;
-			case SENT:
-				fmt  = "(%s) <b>%s</b>: %s";
-				break;
-			default:
-				fmt  = "(%s) %s: %s";
-				break;
+		// Format date and name
+		span.setSpan(new ForegroundColorSpan(0xffffff88), 0,    de, 0);
+		span.setSpan(new ForegroundColorSpan(0xffff88ff), de+1, ne, 0);
+
+		// Format IRC Colors
+		for (Message.Format fmt : msg.parts) {
+			int len = fmt.txt.length();
+
+			// Bold/italics
+			if (fmt.bold && fmt.italic)
+				span.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), pos, pos+len, 0);
+			else if (fmt.bold)
+				span.setSpan(new StyleSpan(Typeface.BOLD), pos, pos+len, 0);
+			else if (fmt.italic)
+				span.setSpan(new StyleSpan(Typeface.ITALIC), pos, pos+len, 0);
+
+			// Striketrough / underline
+			if (fmt.strike)
+				span.setSpan(new StrikethroughSpan(), pos, pos+len, 0);
+			if (fmt.underline)
+				span.setSpan(new UnderlineSpan(), pos, pos+len, 0);
+
+			// Colors (reverse not supported)
+			if (fmt.fg!=null)
+				span.setSpan(new ForegroundColorSpan(fmt.fg.color), pos, pos+len, 0);
+			if (fmt.bg!=null)
+				span.setSpan(new BackgroundColorSpan(fmt.bg.color), pos, pos+len, 0);
+
+			pos += len;
 		}
 
-		String html = String.format(fmt, when, from, text);
-		this.log.append(Html.fromHtml(html + "<br />"));
+		// Append the message
+		this.log.append(span);
 	}
 
 	/* Private handler methods */
