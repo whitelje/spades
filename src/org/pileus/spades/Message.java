@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 public class Message
 {
 	/* Enumerations */
-	enum Type {
+	static enum Type {
 		OTHER,    // Unknown message type
 		JOIN,     // Join channel
 		PART,     // Leave channel
@@ -21,7 +21,7 @@ public class Message
 		AUTHFAIL, // Authentication failed
 	};
 
-	enum How {
+	static enum How {
 		OTHER,    // Unknown message type
 		CHANNEL,  // Normal message to a channel
 		MENTION,  // User was mentioned in message text
@@ -31,15 +31,15 @@ public class Message
 	};
 
 	/* Constants */
-	private final  String  reMsg  = "(:([^ ]+) +)?(([A-Z0-9]+) +)(([^ ]+)[= ]+)?(([^: ]+) *)?(:(.*))?";
-	private final  String  reFrom = "([^! ]+)!.*";
-	private final  String  reTo   = "(([^ :,]*)[:,] *)?(.*)";
-	private final  String  reCmd  = "/([a-z]+)( +(.*))?";
+	private static final String  reMsg  = "(:([^ ]+) +)?(([A-Z0-9]+) +)(([^ ]+)[= ]+)?(([^: ]+) *)?(:(.*))?";
+	private static final String  reFrom = "([^! ]+)!.*";
+	private static final String  reTo   = "(([^ :,]*)[:,] *)?(.*)";
+	private static final String  reCmd  = "/([a-z]+)( +(.*))?";
 
-	private static Pattern ptMsg  = null;
-	private static Pattern ptFrom = null;
-	private static Pattern ptTo   = null;
-	private static Pattern ptCmd  = null;
+	private static final Pattern ptMsg  = Pattern.compile(reMsg);
+	private static final Pattern ptFrom = Pattern.compile(reFrom);
+	private static final Pattern ptTo   = Pattern.compile(reTo);
+	private static final Pattern ptCmd  = Pattern.compile(reCmd);
 
 	/* Public data */
 	public Date    time = null;
@@ -66,12 +66,6 @@ public class Message
 		          .replaceAll("[\\003\\013]("+num+")(,"+num+")?", "");
 	}
 
-	/* Private methods */
-	private String notnull(String string)
-	{
-		return string == null ? "" : string;
-	}
-
 	/* Public Methods */
 	public Message(String dst, String from, String msg)
 	{
@@ -79,52 +73,89 @@ public class Message
 		this.how  = How.SENT;
 		this.from = from;
 
-		if (msg.charAt(0) == '/') {
-			if (ptCmd == null)
-				ptCmd = Pattern.compile(reCmd);
-			Matcher mr = ptCmd.matcher(msg);
-			if (!mr.matches())
-				return;
+		if (this.parseSlash(msg))
+			return;
 
-			String cmd = notnull(mr.group(1));
-			String arg = notnull(mr.group(3));
-
-			if (cmd.matches("join")) {
-				Os.debug("Message: /join");
-				this.type = Type.JOIN;
-				this.cmd  = "JOIN";
-				this.msg  = arg;
-				this.line = this.cmd + " :" + arg;
-			}
-			if (cmd.matches("part")) {
-				Os.debug("Message: /part");
-				this.type = Type.PART;
-				this.cmd  = "PART";
-				this.msg  = arg;
-				this.line = this.cmd + " :" + arg;
-			}
-			if (this.line == null) {
-				Os.debug("Message: unknown command");
-			}
-		} else {
-			this.type = Type.PRIVMSG;
-			this.cmd  = "PRIVMSG";
-			this.dst  = dst;
-			this.msg  = msg;
-			this.line = this.cmd + " " + this.dst + " :" + this.msg;
-		}
+		this.type = Type.PRIVMSG;
+		this.cmd  = "PRIVMSG";
+		this.dst  = dst;
+		this.msg  = msg;
+		this.line = this.cmd + " " + this.dst + " :" + this.msg;
 	}
 
 	public Message(String line, String name)
 	{
-		// Initialize regexes
-		if (ptMsg  == null) ptMsg  = Pattern.compile(reMsg);
-		if (ptFrom == null) ptFrom = Pattern.compile(reFrom);
-		if (ptTo   == null) ptTo   = Pattern.compile(reTo);
-
-		// Set time stamp
 		this.time = new Date();
 
+		this.parseText(line);
+		this.parseTypes(name);
+	}
+
+	public void debug()
+	{
+		Os.debug("---------------------");
+		Os.debug("line = [" + line + "]");
+		Os.debug("src  = " + this.src);
+		Os.debug("cmd  = " + this.cmd);
+		Os.debug("dst  = " + this.dst);
+		Os.debug("arg  = " + this.arg);
+		Os.debug("msg  = " + this.msg);
+		Os.debug("from = " + this.from);
+		Os.debug("to   = " + this.to);
+		Os.debug("txt  = " + this.txt);
+		Os.debug("---------------------");
+	}
+
+	public String toString()
+	{
+		return this.from + ": " + this.txt;
+	}
+
+	/* Private methods */
+	private String notnull(String string)
+	{
+		return string == null ? "" : string;
+	}
+
+	private boolean parseSlash(String msg)
+	{
+		if (msg.charAt(0) != '/')
+			return false;
+
+		// Split up line
+		Matcher mr = ptCmd.matcher(msg);
+		if (!mr.matches())
+			return false;
+
+		String cmd = notnull(mr.group(1));
+		String arg = notnull(mr.group(3));
+
+		// Parse commands
+		if (cmd.matches("join")) {
+			Os.debug("Message: /join");
+			this.type = Type.JOIN;
+			this.cmd  = "JOIN";
+			this.msg  = arg;
+			this.line = this.cmd + " :" + arg;
+		}
+
+		if (cmd.matches("part")) {
+			Os.debug("Message: /part");
+			this.type = Type.PART;
+			this.cmd  = "PART";
+			this.msg  = arg;
+			this.line = this.cmd + " :" + arg;
+		}
+
+		// Print warning if command is not recognized
+		if (this.line == null)
+			Os.debug("Message: unknown command");
+
+		return true;
+	}
+
+	private void parseText(String line)
+	{
 		// Cleanup line
 		line = line.replaceAll("\\s+",       " ");
 		line = line.replaceAll("^ | $",      "");
@@ -153,7 +184,10 @@ public class Message
 			this.txt  = notnull(this.msg);
 		else
 			this.txt  = notnull(mrTo.group(3));
+	}
 
+	private void parseTypes(String name)
+	{
 		// Parse commands names
 		if      (this.cmd.equals("PRIVMSG"))       this.type = Type.PRIVMSG;
 		else if (this.cmd.equals("332"))           this.type = Type.TOPIC;
@@ -172,25 +206,5 @@ public class Message
 		else if (this.to.equals(name))             this.how  = How.DIRECT;
 		else if (this.msg.contains(name))          this.how  = How.MENTION;
 		else if (this.type == Type.PRIVMSG)        this.how  = How.CHANNEL;
-	}
-
-	public void debug()
-	{
-		Os.debug("---------------------");
-		Os.debug("line = [" + line + "]");
-		Os.debug("src  = " + this.src);
-		Os.debug("cmd  = " + this.cmd);
-		Os.debug("dst  = " + this.dst);
-		Os.debug("arg  = " + this.arg);
-		Os.debug("msg  = " + this.msg);
-		Os.debug("from = " + this.from);
-		Os.debug("to   = " + this.to);
-		Os.debug("txt  = " + this.txt);
-		Os.debug("---------------------");
-	}
-
-	public String toString()
-	{
-		return this.from + ": " + this.txt;
 	}
 }
