@@ -429,6 +429,8 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 
 	private void drawCard(String name)
 	{
+		if (!this.index.containsKey(name))
+			return;
 		int idx   = this.index.get(name);
 		int front = this.face[idx];
 		int back  = this.red;

@@ -41,8 +41,8 @@ public class Spades
 			this.cards.hand = Spades.getCards(txt, "You have: (.*)");
 			this.cards.requestRender();
 		}
-		if (txt.matches("turn!")) {
-			this.cards.pile = Spades.getCards(txt, ".*turn! (.*)");
+		if (txt.matches(".*turn!.*")) {
+			this.cards.pile = Spades.getCards(txt, ".*turn! \\((.*)\\)");
 			this.cards.requestRender();
 		}
 	}
