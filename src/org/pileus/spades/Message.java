@@ -1,6 +1,8 @@
 package org.pileus.spades;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -30,6 +32,72 @@ public class Message
 		SENT      // Message was sent by the user
 	};
 
+	/* Structures */
+	static class Color {
+		public int     code;
+		public String  hex;
+		public String  name;
+
+		public Color(int code, String hex, String name)
+		{
+			this.code  = code;
+			this.hex   = hex;
+			this.name  = name;
+		}
+	};
+
+	static class Format implements Cloneable {
+		public boolean bold;
+		public boolean italic;
+		public boolean strike;
+		public boolean underline;
+		public boolean reverse;
+		public Color   fg;
+		public Color   bg;
+		public String  txt;
+
+		public Format clone()
+		{
+			try {
+				return (Format)super.clone();
+			} catch (Exception e) {
+				return null;
+			}
+		}
+
+		public String toString()
+		{
+			return (fg!=null  ? fg.hex : "xxxxxx") + ":" +
+			       (bg!=null  ? bg.hex : "xxxxxx") + ":" +
+			       (bold      ? "b"    : "-"     ) +
+			       (italic    ? "i"    : "-"     ) +
+			       (strike    ? "s"    : "-"     ) +
+			       (underline ? "u"    : "-"     ) +
+			       (reverse   ? "r"    : "-"     ) + ":" +
+			       "[" + txt + "]";
+		}
+	};
+
+	/* Colors */
+	private static final Color colors[] = {
+		new Color(0x0, "FFFFFF", "White"),
+		new Color(0x1, "000000", "Black"),
+		new Color(0x2, "000080", "Navy Blue"),
+		new Color(0x3, "008000", "Green"),
+		new Color(0x4, "FF0000", "Red"),
+		new Color(0x5, "804040", "Brown"),
+		new Color(0x6, "8000FF", "Purple"),
+		new Color(0x7, "808000", "Olive"),
+		new Color(0x8, "FFFF00", "Yellow"),
+		new Color(0x9, "00FF00", "Lime Green"),
+		new Color(0xA, "008080", "Teal"),
+		new Color(0xB, "00FFFF", "Aqua Light"),
+		new Color(0xC, "0000FF", "Royal Blue"),
+		new Color(0xD, "FF00FF", "Hot Pink"),
+		new Color(0xE, "808080", "Dark Gray"),
+		new Color(0xF, "C0C0C0", "Light Gray"),
+	};
+
 	/* Constants */
 	private static final String  reMsg  = "(:([^ ]+) +)?(([A-Z0-9]+) +)(([^ ]+)[= ]+)?(([^: ]+) *)?(:(.*))?";
 	private static final String  reFrom = "([^! ]+)!.*";
@@ -40,6 +108,12 @@ public class Message
 	private static final Pattern ptFrom = Pattern.compile(reFrom);
 	private static final Pattern ptTo   = Pattern.compile(reTo);
 	private static final Pattern ptCmd  = Pattern.compile(reCmd);
+
+	private static final String  cReNum = "1[0-5]|0?[0-9]";
+	private static final String  cReFmt = "[\\002\\011\\017\\023\\025\\026\\037]";
+	private static final String  cReClr = "[\\003\\013]("+cReNum+")?(,("+cReNum+"))?";
+	private static final String  cRegex = cReFmt + "|" + cReClr + "|$";
+	private static final Pattern cPtrn  = Pattern.compile(cRegex);
 
 	/* Public data */
 	public Date    time = null;
@@ -58,12 +132,17 @@ public class Message
 	public String  to   = "";
 	public String  txt  = "";
 
+	public List<Format> parts = new ArrayList<Format>();
+
 	/* Static methods */
-	public static String clean(String msg)
+	private static Color getColor(String code)
 	{
-		String num = "0?[0-9]|1[0-5]";
-		return msg.replaceAll("[\\002\\011\\017\\025]", "")
-		          .replaceAll("[\\003\\013]("+num+")(,"+num+")?", "");
+		if (code == null)
+			return null;
+		int i = Integer.parseInt(code);
+		if (i >= 0 && i < Message.colors.length)
+			return Message.colors[i];
+		return null;
 	}
 
 	/* Public Methods */
@@ -89,6 +168,7 @@ public class Message
 
 		this.parseText(line);
 		this.parseTypes(name);
+		this.parseColors(this.msg);
 	}
 
 	public void debug()
@@ -157,8 +237,8 @@ public class Message
 	private void parseText(String line)
 	{
 		// Cleanup line
-		line = line.replaceAll("\\s+",       " ");
-		line = line.replaceAll("^ | $",      "");
+		line = line.replaceAll("\\s+",  " ");
+		line = line.replaceAll("^ | $", "");
 		this.line = line;
 
 		// Split line into parts
@@ -206,5 +286,60 @@ public class Message
 		else if (this.to.equals(name))             this.how  = How.DIRECT;
 		else if (this.msg.contains(name))          this.how  = How.MENTION;
 		else if (this.type == Type.PRIVMSG)        this.how  = How.CHANNEL;
+	}
+
+	private void parseColors(String msg)
+	{
+		// Setup regex matching
+		Matcher match = Message.cPtrn.matcher(msg);
+
+		// Initialize state variables
+		int    pos = 0;
+		Format fmt = new Format();
+		ArrayList<Format> list = new ArrayList<Format>();
+
+		// Parse the string
+		while (match.find()) {
+			// Push current string
+			fmt.txt = msg.substring(pos, match.start());
+			if (fmt.txt.length() > 0)
+				list.add(fmt.clone());
+			pos = match.end();
+
+			// Abort at end of string
+			if (match.hitEnd())
+				break;
+
+			// Update format for next string
+			switch (match.group().charAt(0)) {
+				// Format attributes
+				case 002: fmt.bold      ^= true; break;
+				case 011: fmt.italic    ^= true; break;
+				case 023: fmt.strike    ^= true; break;
+				case 025: fmt.underline ^= true; break;
+				case 037: fmt.underline ^= true; break;
+				case 026: fmt.reverse   ^= true; break;
+
+				// Reset
+				case 017:
+					  fmt = new Format();
+					  break;
+
+				// Colors
+				case 003:
+					  String fg = match.group(1);
+					  String bg = match.group(3);
+					  fmt.fg = Message.getColor(fg);
+					  fmt.bg = Message.getColor(bg);
+					  break;
+			}
+		}
+
+		// Cleanup extra space
+		list.trimToSize();
+		this.parts = list;
+		this.msg   = msg.replaceAll(cRegex, "");
+		this.to    = msg.replaceAll(cRegex, "");
+		this.txt   = msg.replaceAll(cRegex, "");
 	}
 }

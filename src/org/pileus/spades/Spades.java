@@ -10,7 +10,7 @@ public class Spades
 	/* Static methods */
 	private static String[] getCards(String msg, String regex)
 	{
-		String cards = Message.clean(msg)
+		String cards = msg
 			.replaceAll(regex, "$1")
 			.replaceAll(",", " ")
 			.replaceAll("♠", "s")
