@@ -16,6 +16,7 @@ public class Client
 	/* Preference data */
 	public  String         server   = "irc.freenode.net";
 	public  int            port     = 6667;
+	public  int            timeout  = 240;
 	public  String         nickname = "SpadeGuest";
 	public  String         channel  = "#rhnoise";
 	public  boolean        usesasl  = false;
@@ -28,7 +29,8 @@ public class Client
 	public  State          state    = State.INIT;
 	public  String         name     = "";
 
-       	/* Connection data */
+	/* Connection data */
+	private boolean        pinging;
 	private Socket         socket;
 	private BufferedReader input;
 	private PrintWriter    output;
@@ -69,6 +71,7 @@ public class Client
 		try {
 			this.state  = State.SETUP;
 			this.socket = new Socket();
+			this.socket.setSoTimeout(this.timeout/2 * 1000);
 			this.socket.connect(new InetSocketAddress(this.server, this.port));
 			this.input  = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
 			this.output = new PrintWriter(this.socket.getOutputStream());
@@ -126,7 +129,7 @@ public class Client
 
 	public Message recv()
 	{
-		try {
+		while (true) try {
 			if (this.validate() != State.SETUP &&
 			    this.validate() != State.READY)
 				return null;
@@ -139,10 +142,22 @@ public class Client
 			if (this.usesasl)
 				this.dosasl(msg);
 			return msg;
-		} catch (SocketException e) {
+		}
+		catch (SocketTimeoutException e) {
+			if (this.pinging) {
+				this.abort();
+				return null;
+			} else {
+				this.pinging = true;
+				this.raw("PING :" + hostname);
+				continue;
+			}
+		}
+		catch (SocketException e) {
 			this.state = State.INIT;
 			return null;
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			this.state = State.INIT;
 			Os.debug("Client: error in recv", e);
 			return null;
@@ -178,7 +193,10 @@ public class Client
 			this.raw("NICK "  + this.name);
 		}
 		if (msg.cmd.equals("PING")) {
-			this.raw("PING " + msg.msg);
+			this.raw("PONG " + msg.msg);
+		}
+		if (msg.cmd.equals("PONG")) {
+			this.pinging = false;
 		}
 	}
 
