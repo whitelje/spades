@@ -1,12 +1,15 @@
 -include config.mk
 
 # Settings
-ANDROID ?= /opt/android-sdk-update-manager/platforms/android-10/android.jar
+PROGRAM ?= Spades
 PACKAGE ?= org.pileus.spades
-OUTPUT  ?= bin/Spades.apk
+KEYFILE ?= ~/.android/android.p12
+KEYTYPE ?= pkcs12
+KEYNAME ?= android
+ANDROID ?= /opt/android-sdk-update-manager/platforms/android-10/android.jar
 
 # Sources
-RES     := $(shell find res -name '*.xml')
+RES     := $(shell find res -type f)
 SRC     := $(shell find src -name '*.java')
 
 # Objects
@@ -16,7 +19,9 @@ OBJ     := $(subst .java,.class,   \
                 $(GEN:gen/%=obj/%))
 
 # Targets
-all: $(OUTPUT)
+debug: bin/$(PROGRAM).dbg
+
+release: bin/$(PROGRAM).apk
 
 compile: $(OBJ)
 
@@ -25,12 +30,14 @@ clean:
 
 # ADB targets
 logcat:
-	adb logcat Spades:D AndroidRuntime:E '*:S'
+	adb logcat $(PROGRAM):D AndroidRuntime:E '*:S'
 
 run: bin/install.stamp
-	adb shell am start -W -a android.intent.action.MAIN -n $(PACKAGE)/.Main
+	adb shell am start -W                 \
+		-a android.intent.action.MAIN \
+		-n $(PACKAGE)/.Main
 
-install bin/install.stamp: $(OUTPUT)
+install bin/install.stamp: bin/$(PROGRAM).dbg
 	adb install -r $+
 	touch bin/install.stamp
 
@@ -64,10 +71,20 @@ convert:
 	done
 
 # Rules
-%.apk: %.dex %.res | bin
+%.dbg: %.dex %.res | bin
 	@echo "APK    $@.in"
 	@apkbuilder $@.in -f $*.dex -z $*.res
-	@echo ALIGN $@
+	@echo "ALIGN  $@"
+	@zipalign -f 4 $@.in $@
+
+%.apk: %.dex %.res | bin
+	@echo "APKU   $@.in"
+	@apkbuilder $@.in -u -f $*.dex -z $*.res
+	@echo "SIGN   $@.in"
+	@jarsigner -storetype $(KEYTYPE)  \
+	           -keystore  $(KEYFILE)  \
+	           $@.in      $(KEYNAME)
+	@echo "ALIGN  $@"
 	@zipalign -f 4 $@.in $@
 
 %.dex: $(OBJ) | bin
@@ -83,7 +100,7 @@ convert:
 		-F $*.res
 
 $(OBJ): $(SRC) $(GEN) | obj
-	@echo "JAVAC  $@"
+	@echo "JAVAC  *.class"
 	@javac -g -Xlint:unchecked        \
 		-bootclasspath $(ANDROID) \
 		-encoding      UTF-8      \
@@ -111,4 +128,5 @@ bin gen obj:
 	@mkdir -p $@
 
 # Use parallel javac instead
+.PRECIOUS: %.dex %.res
 .NOTPARALLEL:
