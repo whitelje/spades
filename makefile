@@ -97,7 +97,7 @@ convert:
 		-F $*.res
 
 $(OBJ): $(SRC) $(GEN) | obj
-	@echo "JAVAC  *.class"
+	@echo "JAVAC  obj/*.class"
 	@javac -g -Xlint:unchecked        \
 		-bootclasspath $(ANDROID) \
 		-encoding      UTF-8      \
