@@ -8,15 +8,12 @@ KEYTYPE ?= pkcs12
 KEYNAME ?= android
 ANDROID ?= /opt/android-sdk-update-manager/platforms/android-10/android.jar
 
-# Sources
-RES     := $(shell find res -type f)
-SRC     := $(shell find src -name '*.java')
-
-# Objects
-GEN     := gen/$(subst .,/,$(PACKAGE))/R.java
-OBJ     := $(subst .java,.class,   \
-                $(SRC:src/%=obj/%) \
-                $(GEN:gen/%=obj/%))
+# Variables
+DIR     := $(subst .,/,$(PACKAGE))
+RES     := $(wildcard res/*/*.*)
+SRC     := $(wildcard src/$(DIR)/*.java)
+GEN     := gen/$(DIR)/R.java
+OBJ     := obj/$(DIR)/R.class
 
 # Targets
 debug: bin/$(PROGRAM).dbg
@@ -127,6 +124,5 @@ $(GEN): AndroidManifest.xml $(RES) | gen
 bin gen obj:
 	@mkdir -p $@
 
-# Use parallel javac instead
-.PRECIOUS: %.dex %.res
-.NOTPARALLEL:
+# Keep intermediate files
+.SECONDARY:
