@@ -7,6 +7,7 @@ KEYFILE ?= ~/.android/android.p12
 KEYTYPE ?= pkcs12
 KEYNAME ?= android
 ANDROID ?= /opt/android-sdk-update-manager/platforms/android-10/android.jar
+SDKLIB  ?= /opt/android-sdk-update-manager/tools/lib/sdklib.jar
 
 # Variables
 DIR     := $(subst .,/,$(PACKAGE))
@@ -14,6 +15,8 @@ RES     := $(wildcard res/*/*.*)
 SRC     := $(wildcard src/$(DIR)/*.java)
 GEN     := gen/$(DIR)/R.java
 OBJ     := obj/$(DIR)/R.class
+APK     := java -classpath $(SDKLIB) \
+                com.android.sdklib.build.ApkBuilderMain
 
 # Targets
 debug: bin/$(PROGRAM).dbg
@@ -70,13 +73,13 @@ convert:
 # Rules
 %.dbg: %.dex %.res | bin
 	@echo "APK    $@.in"
-	@apkbuilder $@.in -f $*.dex -z $*.res
+	@$(APK) $@.in -f $*.dex -z $*.res
 	@echo "ALIGN  $@"
 	@zipalign -f 4 $@.in $@
 
 %.apk: %.dex %.res | bin
 	@echo "APKU   $@.in"
-	@apkbuilder $@.in -u -f $*.dex -z $*.res
+	@$(APK) $@.in -u -f $*.dex -z $*.res
 	@echo "SIGN   $@.in"
 	@jarsigner -storetype $(KEYTYPE)  \
 	           -keystore  $(KEYFILE)  \
