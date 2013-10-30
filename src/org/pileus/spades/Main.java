@@ -56,6 +56,29 @@ public class Main extends Activity
 	private ScrollView   dscroll;
 
 	/* Private helper methods */
+	private int hsv2rgb(int hsv)
+	{
+		int h  = (hsv & 0xff0000) >> 16;
+		int s  = (hsv & 0x00ff00) >>  8;
+		int v  = (hsv & 0x0000ff) >>  0;
+
+		int c  = (v * s) / 256;
+		int h1 = (h * 6) / 256;
+		int x  = c * (1 - Math.abs((h1%2)-1));
+		int m  = v - c;
+
+		int rgb = 0;
+
+		if (0 <= h1 && h1 <= 1) rgb = (c << 16) | (x << 8) | 0;
+		if (1 <= h1 && h1 <= 2) rgb = (x << 16) | (c << 8) | 0;
+		if (2 <= h1 && h1 <= 3) rgb = (0 << 16) | (c << 8) | x;
+		if (3 <= h1 && h1 <= 4) rgb = (0 << 16) | (x << 8) | c;
+		if (4 <= h1 && h1 <= 5) rgb = (x << 16) | (0 << 8) | c;
+		if (5 <= h1 && h1 <= 6) rgb = (c << 16) | (0 << 8) | x;
+
+		return rgb + (m << 16) + (m << 8) + m;
+	}
+
 	private void notice(String text)
 	{
 		String    msg  = "*** " + text + "\n";
@@ -75,9 +98,13 @@ public class Main extends Activity
 		int ne  = de + 1 + msg.from.length() + 1;
 		int pos = ne + 1;
 
+		// Get user color
+		int hash  = msg.from.hashCode();
+		int color = this.hsv2rgb(hash | 0x8080) | 0xff000000;
+
 		// Format date and name
 		span.setSpan(new ForegroundColorSpan(0xffffff88), 0,    de, 0);
-		span.setSpan(new ForegroundColorSpan(0xffff88ff), de+1, ne, 0);
+		span.setSpan(new ForegroundColorSpan(color),      de+1, ne, 0);
 
 		// Format IRC Colors
 		for (Message.Format fmt : msg.parts) {
