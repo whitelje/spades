@@ -213,7 +213,7 @@ public class Message
 		String arg = notnull(mr.group(3));
 
 		// Parse commands
-		if (cmd.matches("join")) {
+		if (cmd.matches("j(oin)?")) {
 			Os.debug("Message: /join");
 			this.type = Type.JOIN;
 			this.cmd  = "JOIN";
@@ -221,7 +221,7 @@ public class Message
 			this.line = this.cmd + " :" + arg;
 		}
 
-		if (cmd.matches("part")) {
+		if (cmd.matches("p(art)?")) {
 			Os.debug("Message: /part");
 			this.type = Type.PART;
 			this.cmd  = "PART";
