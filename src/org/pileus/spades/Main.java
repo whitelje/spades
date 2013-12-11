@@ -222,6 +222,8 @@ public class Main extends Activity
 
 	private void quit()
 	{
+		this.log.setText("");
+		this.debug.setText("");
 		stopService(new Intent(this, Task.class));
 		Intent intent = new Intent(Intent.ACTION_MAIN);
 		intent.addCategory(Intent.CATEGORY_HOME);
