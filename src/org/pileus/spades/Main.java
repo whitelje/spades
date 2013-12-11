@@ -315,6 +315,7 @@ public class Main extends Activity
 	public void onStart()
 	{
 		super.onStart();
+		this.register();
 		Os.debug("Main: onStart");
 	}
 

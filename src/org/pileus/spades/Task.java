@@ -47,7 +47,7 @@ public class Task extends Service implements Runnable
 			msg.obj  = value;
 			this.messenger.send(msg);
 		} catch (Exception e) {
-			Os.debug("Task: error sending message");
+			Os.debug("Task: error sending message", e);
 		}
 	}
 
@@ -67,6 +67,11 @@ public class Task extends Service implements Runnable
 
 	private void handle(int cmd, Messenger mgr)
 	{
+		// Validate messenger
+		if (cmd != REGISTER && mgr != null && mgr != this.messenger) {
+			Os.debug("Task: handle - invalid messenger");
+		}
+
 		// Setup communication with Main
 		if (cmd == REGISTER) {
 			Os.debug("Task: handle - register");
