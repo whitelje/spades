@@ -104,7 +104,7 @@ public class Message
 	private static final String  reMsg  = "(:([^ ]+) +)?(([A-Z0-9]+) +)(([^ ]+)[= ]+)?(([^: ]+) *)?(:(.*))?";
 	private static final String  reFrom = "([^! ]+)!.*";
 	private static final String  reTo   = "(([^ :,]*)[:,] *)?(.*)";
-	private static final String  reCmd  = "/([a-z]+)( +(.*))?";
+	private static final String  reCmd  = "/([a-z]+)(?: +([^ ]*)(?: +(.*))?)?";
 
 	private static final Pattern ptMsg  = Pattern.compile(reMsg);
 	private static final Pattern ptFrom = Pattern.compile(reFrom);
@@ -210,7 +210,8 @@ public class Message
 			return false;
 
 		String cmd = notnull(mr.group(1));
-		String arg = notnull(mr.group(3));
+		String arg = notnull(mr.group(2));
+		String txt = notnull(mr.group(3));
 
 		// Parse commands
 		if (cmd.matches("j(oin)?")) {
@@ -227,6 +228,15 @@ public class Message
 			this.cmd  = "PART";
 			this.msg  = arg;
 			this.line = this.cmd + " :" + arg;
+		}
+
+		if (cmd.matches("msg") && arg != null) {
+			Os.debug("Message: /msg");
+			this.type = Type.PRIVMSG;
+			this.cmd  = "PRIVMSG";
+			this.dst  = arg;
+			this.msg  = txt;
+			this.line = this.cmd + " " + arg + " :" + txt;
 		}
 
 		// Print warning if command is not recognized
