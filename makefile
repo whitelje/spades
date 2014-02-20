@@ -6,10 +6,12 @@ PACKAGE ?= org.pileus.spades
 KEYFILE ?= ~/.android/android.p12
 KEYTYPE ?= pkcs12
 KEYNAME ?= android
-ANDROID ?= /opt/android-sdk-update-manager/platforms/android-10/android.jar
+ANDROID ?= /opt/android-sdk-update-manager/platforms/android-18/android.jar
 SDKLIB  ?= /opt/android-sdk-update-manager/tools/lib/sdklib.jar
+TOOLS   ?= /opt/android-sdk-update-manager/build-tools/19.0.1
 
 # Variables
+PATH    := $(PATH):$(TOOLS)
 DIR     := $(subst .,/,$(PACKAGE))
 RES     := $(wildcard res/*/*.*)
 SRC     := $(wildcard src/$(DIR)/*.java)
