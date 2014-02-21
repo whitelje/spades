@@ -14,6 +14,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapFactory.Options;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
@@ -91,6 +92,7 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 
 	/* Private data */
 	private Resources    res;         // app resources
+	private Options      options;     // bitmap options
 	private int          program;     // opengl program
 
 	private float[]      model;       // model matrix
@@ -186,6 +188,10 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		this.backBuf  = this.loadBuffer(this.backCoords);
 		this.tableBuf = this.loadBuffer(this.tableCoords);
 		this.mapBuf   = this.loadBuffer(this.mapCoords);
+
+		/* Prevent texture scaling */
+		this.options = new BitmapFactory.Options();
+		this.options.inScaled = false;
 
 		/* Load textures */
 		for (int i = 0; i < 52; i++) {
@@ -324,14 +330,14 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		}
 
 		/* Load the bitmap */
-		Bitmap bitmap = BitmapFactory.decodeResource(this.res, id);
+		Bitmap bitmap = BitmapFactory.decodeResource(this.res, id, this.options);
 
 		/* Copy into OpenGL */
 		GLES20.glGenTextures(1, tex, 0);
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, tex[0]);
 		GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
-		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+		GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
 
 		return tex[0];
 	}
