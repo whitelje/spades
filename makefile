@@ -68,7 +68,10 @@ convert:
 	        png=$${png/opt/res};             \
 	        rsvg-convert -w 2048 -h 2048     \
 	                $$svg -o $$png;          \
-	        convert -trim -resize '256x256!' \
+	        convert -trim                    \
+	                -resize      '254x254!'  \
+	                -bordercolor '#00000000' \
+	                -border      '1x1'       \
 	                $$png $$png;             \
 	done
 
