@@ -143,7 +143,9 @@ public class Main extends Activity
 		Os.debug("Main: onRegister");
 		this.task      = task;
 		this.game.task = task;
-		this.running = this.task.isRunning();
+		this.running   = this.task.isRunning();
+		this.log.setText("");
+		this.debug.setText("");
 		for (Object obj : this.task.getLog()) {
 			if (String.class.isInstance(obj))
 				this.notice((String)obj);
