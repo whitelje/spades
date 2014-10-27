@@ -8,7 +8,7 @@ KEYTYPE ?= pkcs12
 KEYNAME ?= android
 ANDROID ?= /opt/android-sdk-update-manager/platforms/android-18/android.jar
 SDKLIB  ?= /opt/android-sdk-update-manager/tools/lib/sdklib.jar
-TOOLS   ?= /opt/android-sdk-update-manager/build-tools/19.0.1
+TOOLS   ?= /opt/android-sdk-update-manager/build-tools/20.0.0
 
 # Variables
 PATH    := $(PATH):$(TOOLS)
@@ -21,7 +21,7 @@ APK     := java -classpath $(SDKLIB) \
                 com.android.sdklib.build.ApkBuilderMain
 
 # Targets
-debug: bin/$(PROGRAM).dbg
+debug: bin/$(PROGRAM)-dbg.apk
 
 release: bin/$(PROGRAM).apk
 
@@ -39,7 +39,7 @@ run: bin/install.stamp
 		-a android.intent.action.MAIN \
 		-n $(PACKAGE)/.Main
 
-install bin/install.stamp: bin/$(PROGRAM).dbg
+install bin/install.stamp: bin/$(PROGRAM)-dbg.apk
 	adb install -r $+
 	touch bin/install.stamp
 
@@ -76,7 +76,7 @@ convert:
 	done
 
 # Rules
-%.dbg: %.dex %.res | bin
+%-dbg.apk: %.dex %.res | bin
 	@echo "APK    $@.in"
 	@$(APK) $@.in -f $*.dex -z $*.res
 	@echo "ALIGN  $@"
