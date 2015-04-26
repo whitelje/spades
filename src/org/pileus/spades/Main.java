@@ -48,6 +48,7 @@ public class Main extends Activity
 	private LinearLayout chat;
 	private TextView     log;
 	private EditText     input;
+	private Button       connect;
 	private Button       send;
 	private LinearLayout spades;
 	private TextView     debug;
@@ -137,13 +138,20 @@ public class Main extends Activity
 		this.log.append(span);
 	}
 
+	private void update(boolean running)
+	{
+		this.running = running;
+		this.connect.setVisibility(running ? View.GONE : View.VISIBLE);
+		this.send.setVisibility(running ? View.VISIBLE : View.GONE);
+	}
+
 	/* Private handler methods */
 	private void onRegister(Task task)
 	{
 		Os.debug("Main: onRegister");
 		this.task      = task;
 		this.game.task = task;
-		this.running   = this.task.isRunning();
+		this.update(this.task.isRunning());
 		this.log.setText("");
 		this.debug.setText("");
 		for (Object obj : this.task.getLog()) {
@@ -211,7 +219,7 @@ public class Main extends Activity
 		Os.debug("Main: connect");
 		startService(new Intent(this, Task.class)
 				.putExtra("Command", Task.CONNECT));
-		this.running = true;
+		this.update(true);
 	}
 
 	private void disconnect()
@@ -219,7 +227,7 @@ public class Main extends Activity
 		Os.debug("Main: disconnect");
 		startService(new Intent(this, Task.class)
 				.putExtra("Command", Task.DISCONNECT));
-		this.running = false;
+		this.update(false);
 	}
 
 	private void quit()
@@ -234,6 +242,11 @@ public class Main extends Activity
 	}
 
 	/* Widget callback functions */
+	public void onConnect(View btn)
+	{
+		this.connect();
+	}
+
 	public void onSend(View btn)
 	{
 		if (this.task == null)
@@ -272,6 +285,7 @@ public class Main extends Activity
 			this.chat      = (LinearLayout) findViewById(R.id.chat);
 			this.log       = (TextView)     findViewById(R.id.log);
 			this.input     = (EditText)     findViewById(R.id.input);
+			this.connect   = (Button)       findViewById(R.id.connect);
 			this.send      = (Button)       findViewById(R.id.send);
 			this.spades    = (LinearLayout) findViewById(R.id.spades);
 			this.debug     = (TextView)     findViewById(R.id.debug);
@@ -408,10 +422,10 @@ public class Main extends Activity
 					Main.this.onMessage((Message)msg.obj);
 					break;
 				case Task.CONNECT:
-					Main.this.running = true;
+					Main.this.update(true);
 					break;
 				case Task.DISCONNECT:
-					Main.this.running = false;
+					Main.this.update(false);
 					break;
 				case Task.NOTIFY:
 					Main.this.onNotify((String)msg.obj);

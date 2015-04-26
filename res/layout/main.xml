@@ -43,7 +43,14 @@
 						android:layout_height="fill_parent"
 						android:layout_weight="1" />
 					<Button
+						android:id="@+id/connect"
+						android:layout_width="wrap_content"
+						android:layout_height="fill_parent"
+						android:onClick="onConnect"
+						android:text="Connect" />
+					<Button
 						android:id="@+id/send"
+						android:visibility="gone"
 						android:layout_width="wrap_content"
 						android:layout_height="fill_parent"
 						android:onClick="onSend"
