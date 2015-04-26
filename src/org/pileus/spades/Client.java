@@ -118,6 +118,8 @@ public class Client
 
 	public Message send(String txt)
 	{
+		if (txt == null || txt.length() == 0)
+			return null;
 		if (this.validate() != State.READY)
 			return null;
 		Message msg = new Message(this.channel, this.name, txt);
