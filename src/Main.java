@@ -195,6 +195,12 @@ public class Main extends Activity
 				break;
 		}
 		this.lscroll.smoothScrollTo(0, this.log.getBottom());
+
+		// Update title
+		if (this.cards.turn  != null && this.cards.turn  != "" &&
+		    this.cards.state != null && this.cards.state != "") {
+			this.setTitle("Spades - " + this.cards.turn + "'s " + this.cards.state);
+		}
 	}
 
 	private void onNotify(String text)

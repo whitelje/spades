@@ -50,6 +50,15 @@ public class Spades
 			this.cards.pile = Spades.getCards(txt, ".*turn! \\((.*)\\)");
 			this.cards.requestRender();
 		}
+		if (txt.startsWith("It is")) {
+			this.cards.turn  = txt.replaceAll("It is (\\w+)'s (\\w+)!.*", "$1");
+			this.cards.state = txt.replaceAll("It is (\\w+)'s (\\w+)!.*", "$2");
+			this.cards.requestRender();
+		}
+		if (txt.startsWith("^it is your")) {
+			this.cards.turn = msg.to;
+			this.cards.requestRender();
+		}
 	}
 
 	/* UI Callbacks */

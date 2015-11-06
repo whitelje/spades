@@ -129,6 +129,8 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 	public Spades        game;        // the spades game
 	public String[]      hand;        // cards to display
 	public String[]      pile;        // played cards to display
+	public String        turn;        // whos turn it is
+	public String        state;       // state of the game (turn, bid, etc)
 
 	/* GLSurfaceView Methods */
 	public Cards(Context context)
@@ -148,6 +150,7 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 
 		this.hand  = "As Ks Qs Js 10s 9s 8s 7s 6s 5s 4s 3s 2s".split(" ");
 		this.pile  = "Ah Ac Ad".split(" ");
+		this.turn  = "";
 
 		this.index = new HashMap<String,Integer>(52);
 		for (int i = 0; i < 52; i++)
