@@ -100,6 +100,16 @@ public class Task extends Service implements Runnable
 	}
 
 	/* Public methods */
+	public Message send(String dst, String txt)
+	{
+		if (this.client == null)
+			return null;
+		Message msg = this.client.send(dst, txt);
+		if (msg != null)
+			this.command(MESSAGE, msg);
+		return msg;
+	}
+
 	public Message send(String txt)
 	{
 		if (this.client == null)

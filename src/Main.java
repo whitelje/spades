@@ -423,6 +423,7 @@ public class Main extends Activity
 					break;
 				case Task.CONNECT:
 					Main.this.update(true);
+					Main.this.game.onConnect();
 					break;
 				case Task.DISCONNECT:
 					Main.this.update(false);

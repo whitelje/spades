@@ -6,6 +6,7 @@ public class Spades
 	public  Task    task;
 	public  Cards   cards;
 	public  String  admin;
+	public  boolean looked;
 
 	/* Static methods */
 	private static String[] getCards(String msg, String regex)
@@ -37,6 +38,10 @@ public class Spades
 			return;
 
 		String txt = msg.txt;
+		if (txt.matches(".*turn!.*") && !this.looked) {
+			this.send(this.admin, ".look");
+			this.looked = true;
+		}
 		if (txt.startsWith("You have: ")) {
 			this.cards.hand = Spades.getCards(txt, "You have: (.*)");
 			this.cards.requestRender();
@@ -48,6 +53,15 @@ public class Spades
 	}
 
 	/* UI Callbacks */
+	public boolean onConnect()
+	{
+		Os.debug("Spades: onConnect");
+		this.looked = false;
+		this.send(this.admin, ".status");
+		this.send(this.admin, ".turn");
+		return true;
+	}
+
 	public boolean onBid(int bid)
 	{
 		Os.debug("Spades: onBid - " + bid);
@@ -57,7 +71,7 @@ public class Spades
 	public boolean onPass(String card)
 	{
 		Os.debug("Spades: onPass - " + card);
-		return this.send(".pass " + card);
+		return this.send(this.admin, ".pass " + card);
 	}
 
 	public boolean onLook()
@@ -79,6 +93,13 @@ public class Spades
 	}
 
 	/* Helper functions */
+	private boolean send(String dst, String msg)
+	{
+		if (this.task == null)
+			return false;
+		this.task.send(dst, msg);
+		return true;
+	}
 	private boolean send(String msg)
 	{
 		if (this.task == null)

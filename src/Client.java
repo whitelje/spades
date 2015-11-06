@@ -116,17 +116,22 @@ public class Client
 		}
 	}
 
-	public Message send(String txt)
+	public Message send(String dst, String txt)
 	{
 		if (txt == null || txt.length() == 0)
 			return null;
 		if (this.validate() != State.READY)
 			return null;
-		Message msg = new Message(this.channel, this.name, txt);
+		Message msg = new Message(dst, this.name, txt);
 		if (msg.type == Message.Type.JOIN)
 			this.channel = msg.msg;
 		this.raw(msg.line);
 		return msg;
+	}
+
+	public Message send(String txt)
+	{
+		return this.send(this.channel, txt);
 	}
 
 	public Message recv()
