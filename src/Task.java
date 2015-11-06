@@ -51,6 +51,7 @@ public class Task extends Service implements Runnable
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private void notify(String text, int icon)
 	{
 		// Notify Main
@@ -210,6 +211,7 @@ public class Task extends Service implements Runnable
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public void onStart(Intent intent, int startId)
 	{
 		Os.debug("Task: onStart");
