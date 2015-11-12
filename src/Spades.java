@@ -6,7 +6,7 @@ public class Spades
 	public  Task    task;
 	public  Cards   cards;
 	public  String  admin;
-	public  boolean looked;
+	public  boolean look;
 
 	/* Static methods */
 	private static String[] getCards(String msg, String regex)
@@ -38,13 +38,14 @@ public class Spades
 			return;
 
 		String txt = msg.txt;
-		if (txt.matches(".*turn!.*") && !this.looked) {
+		if (txt.matches(".*turn!.*") && this.look) {
 			this.send(this.admin, ".look");
-			this.looked = true;
+			this.look = false;
 		}
 		if (txt.startsWith("You have: ")) {
 			this.cards.hand = Spades.getCards(txt, "You have: (.*)");
 			this.cards.requestRender();
+			this.look = false;
 		}
 		if (txt.matches(".*turn!.*")) {
 			this.cards.pile = Spades.getCards(txt, ".*turn! \\((.*)\\)");
@@ -55,8 +56,9 @@ public class Spades
 			this.cards.state = txt.replaceAll("It is (\\w+)'s (\\w+)!.*", "$2");
 			this.cards.requestRender();
 		}
-		if (txt.startsWith("^it is your")) {
-			this.cards.turn = msg.to;
+		if (txt.startsWith("it is your") && msg.to != "") {
+			this.cards.turn  = msg.to;
+			this.cards.state = txt.replaceAll("it is your (\\w+)!", "$1");
 			this.cards.requestRender();
 		}
 	}
@@ -65,9 +67,9 @@ public class Spades
 	public boolean onConnect()
 	{
 		Os.debug("Spades: onConnect");
-		this.looked = false;
 		this.send(this.admin, ".status");
 		this.send(this.admin, ".turn");
+		this.look = true;
 		return true;
 	}
 

@@ -118,21 +118,21 @@ public class Message
 	private static final Pattern cPtrn  = Pattern.compile(cRegex);
 
 	/* Public data */
-	public Date    time = null;
+	public Date    time = null;        // Message delivery time
 
-	public String  line = "";
+	public String  line = "";          // Raw IRC line     -- george@~g@example.com PRIVMSG #chat :larry: hello!
 
-	public String  src  = "";
-	public String  cmd  = "";
-	public String  dst  = "";
-	public String  arg  = "";
-	public String  msg  = "";
+	public String  src  = "";          // IRC Source       -- george!~g@example.com
+	public String  cmd  = "";          // IRC Command      -- PRIVMSG
+	public String  dst  = "";          // IRC Destination  -- #chat
+	public String  arg  = "";          // IRC Arguments    -- #chan in topic msg, etc
+	public String  msg  = "";          // IRC Message text -- larry: Hello!
 
-	public Type    type = Type.OTHER;
-	public How     how  = How.OTHER;
-	public String  from = "";
-	public String  to   = "";
-	public String  txt  = "";
+	public Type    type = Type.OTHER;  // Message Type     -- PRIVMSG
+	public How     how  = How.OTHER;   // How msg relates  -- SENT=geroge, DIRECT=larry, CHANNEL=*
+	public String  from = "";          // Nick of sender   -- george
+	public String  to   = "";          // Addressed name   -- larry
+	public String  txt  = "";          // Text of msg      -- Hello!
 
 	public List<Format> parts = new ArrayList<Format>();
 
@@ -350,8 +350,8 @@ public class Message
 		// Cleanup extra space
 		list.trimToSize();
 		this.parts = list;
-		this.msg   = msg.replaceAll(cRegex, "");
-		this.to    = msg.replaceAll(cRegex, "");
-		this.txt   = msg.replaceAll(cRegex, "");
+		this.msg   = this.msg.replaceAll(cRegex, "");
+		this.to    = this.to.replaceAll(cRegex, "");
+		this.txt   = this.txt.replaceAll(cRegex, "");
 	}
 }

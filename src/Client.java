@@ -148,7 +148,9 @@ public class Client
 			this.process(msg);
 			if (this.usesasl)
 				this.dosasl(msg);
-			return msg;
+			if (!msg.cmd.equals("PING") &&
+			    !msg.cmd.equals("PONG"))
+				return msg;
 		}
 		catch (SocketTimeoutException e) {
 			if (this.pinging) {

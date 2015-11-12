@@ -145,6 +145,12 @@ public class Main extends Activity
 		this.send.setVisibility(running ? View.VISIBLE : View.GONE);
 	}
 
+	private void scroll()
+	{
+		this.dscroll.smoothScrollTo(0, this.debug.getBottom());
+		this.lscroll.smoothScrollTo(0, this.log.getBottom());
+	}
+
 	/* Private handler methods */
 	private void onRegister(Task task)
 	{
@@ -160,13 +166,13 @@ public class Main extends Activity
 			if (Message.class.isInstance(obj))
 				this.onMessage((Message)obj);
 		}
+		this.scroll();
 	}
 
 	private void onMessage(Message msg)
 	{
 		// Debug
 		this.debug.append("> " + msg.line + "\n");
-		this.dscroll.smoothScrollTo(0, this.debug.getBottom());
 
 		// Chat
 		switch (msg.type) {
@@ -194,7 +200,6 @@ public class Main extends Activity
 				this.notice("Authentication failed: " + msg.txt);
 				break;
 		}
-		this.lscroll.smoothScrollTo(0, this.log.getBottom());
 
 		// Update title
 		if (this.cards.turn  != null && this.cards.turn  != "" &&
@@ -426,6 +431,7 @@ public class Main extends Activity
 					break;
 				case Task.MESSAGE:
 					Main.this.onMessage((Message)msg.obj);
+					Main.this.scroll();
 					break;
 				case Task.CONNECT:
 					Main.this.update(true);
