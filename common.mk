@@ -2,9 +2,9 @@
 KEYFILE ?= ~/.android/android.p12
 KEYTYPE ?= pkcs12
 KEYNAME ?= android
-ANDROID ?= /opt/android-sdk-update-manager/platforms/android-18/android.jar
-SDKLIB  ?= /opt/android-sdk-update-manager/tools/lib/sdklib.jar
-TOOLS   ?= /opt/android-sdk-update-manager/build-tools/20.0.0
+ANDROID ?= /opt/android-sdk-linux/platforms/android-23/android.jar
+SDKLIB  ?= /opt/android-sdk-linux/tools/lib/sdklib.jar
+TOOLS   ?= /opt/android-sdk-linux/build-tools/23.0.2
 
 # Variables
 PATH    := $(PATH):$(TOOLS)
@@ -117,8 +117,8 @@ $(OBJ): $(SRC) $(GEN) makefile | obj
 		-Xlint:deprecation        \
 		-bootclasspath $(ANDROID) \
 		-encoding      UTF-8      \
-		-source        1.5        \
-		-target        1.5        \
+		-source        1.7        \
+		-target        1.7        \
 		-classpath     obj        \
 		-d             obj        \
 		$(filter-out makefile,$+)

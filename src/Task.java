@@ -58,11 +58,17 @@ public class Task extends Service implements Runnable
 		this.command(NOTIFY, text);
 
 		// Notification bar
-		Notification  note   = new Notification(icon, null, 0);
 		Intent        intent = new Intent(this, Main.class);
 		PendingIntent pend   = PendingIntent.getActivity(this, 0, intent, 0);
 
-		note.setLatestEventInfo(this, "Spades!", text, pend);
+		Notification.Builder nb = new Notification.Builder(this)
+				.setContentIntent(pend)
+				.setSmallIcon(icon)
+				.setContentTitle("Spades!")
+				.setOngoing(true)
+				.setContentText(text);
+
+		Notification note = nb.build();
 		this.startForeground(1, note);
 	}
 
@@ -134,7 +140,6 @@ public class Task extends Service implements Runnable
 	}
 
 	/* Runnable methods */
-	@Override
 	public void run()
 	{
 		Os.debug("Task: thread run");
@@ -221,14 +226,14 @@ public class Task extends Service implements Runnable
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
-	public void onStart(Intent intent, int startId)
+	public int onStartCommand(Intent intent, int flags, int startId)
 	{
 		Os.debug("Task: onStart");
-		super.onStart(intent, startId);
+		super.onStartCommand(intent, flags, startId);
 		int       cmd = intent.getExtras().getInt("Command");
 		Messenger mgr = (Messenger)intent.getExtras().get("Messenger");
 		this.handle(cmd, mgr);
+		return START_STICKY;
 	}
 
 	@Override
