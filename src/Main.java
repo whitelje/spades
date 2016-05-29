@@ -263,6 +263,8 @@ public class Main extends Activity
 		if (this.task == null)
 			return;
 		String  txt = this.input.getText().toString();
+		if (txt.isEmpty())
+			return;
 		Message msg = this.task.send(txt);
 		if (msg == null)
 			return;
