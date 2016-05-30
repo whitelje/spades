@@ -147,8 +147,19 @@ public class Main extends Activity
 
 	private void scroll()
 	{
-		this.dscroll.smoothScrollTo(0, this.debug.getBottom());
-		this.lscroll.smoothScrollTo(0, this.log.getBottom());
+		this.dscroll.post(new Runnable() {
+			@Override
+			public void run() {
+				dscroll.smoothScrollTo(0, debug.getBottom());
+			}
+		});
+
+		this.lscroll.post(new Runnable() {
+			@Override
+			public void run() {
+				lscroll.smoothScrollTo(0, log.getBottom());
+			}
+		});
 	}
 
 	/* Private handler methods */
