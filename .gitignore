@@ -18,4 +18,11 @@ res/drawable/*.jpg
 
 # Android studio
 .idea
+.gradle
+build.gradle
+build
+gradle
+gradlew
+gradlew.bat
+local.properties
 
