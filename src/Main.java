@@ -178,9 +178,9 @@ public class Main extends Activity
 		this.log.setText("");
 		this.debug.setText("");
 		for (Object obj : this.task.getLog()) {
-			if (String.class.isInstance(obj))
+			if (obj instanceof String)
 				this.notice((String)obj);
-			if (Message.class.isInstance(obj))
+			if (obj instanceof Message)
 				this.onMessage((Message)obj);
 		}
 		this.scroll();
