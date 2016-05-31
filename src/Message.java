@@ -9,7 +9,7 @@ import java.util.regex.Matcher;
 public class Message
 {
 	/* Enumerations */
-	static enum Type {
+	enum Type {
 		OTHER,    // Unknown message type
 		JOIN,     // Join channel
 		PART,     // Leave channel
@@ -21,16 +21,16 @@ public class Message
 		AUTH,     // Authentication message
 		AUTHOK,   // Authentication succeeded
 		AUTHFAIL, // Authentication failed
-	};
+	}
 
-	static enum How {
+	private enum How {
 		OTHER,    // Unknown message type
 		CHANNEL,  // Normal message to a channel
 		MENTION,  // User was mentioned in message text
 		DIRECT,   // Message directed towards user
 		PRIVMSG,  // Private message to user only
 		SENT      // Message was sent by the user
-	};
+	}
 
 	/* Structures */
 	static class Color {
@@ -46,7 +46,7 @@ public class Message
 			this.name  = name;
 			this.color = Os.getColor(hex);
 		}
-	};
+	}
 
 	static class Format implements Cloneable {
 		public boolean bold;
@@ -78,7 +78,7 @@ public class Message
 			       (reverse   ? "r"    : "-"     ) + ":" +
 			       "[" + txt + "]";
 		}
-	};
+	}
 
 	/* Colors */
 	private static final Color colors[] = {
@@ -134,7 +134,7 @@ public class Message
 	public String  to   = "";          // Addressed name   -- larry
 	public String  txt  = "";          // Text of msg      -- Hello!
 
-	public List<Format> parts = new ArrayList<Format>();
+	public List<Format> parts = new ArrayList<>();
 
 	/* Static methods */
 	private static Color getColor(String code)
@@ -308,7 +308,7 @@ public class Message
 		// Initialize state variables
 		int    pos = 0;
 		Format fmt = new Format();
-		ArrayList<Format> list = new ArrayList<Format>();
+		ArrayList<Format> list = new ArrayList<>();
 
 		// Parse the string
 		while (match.find()) {

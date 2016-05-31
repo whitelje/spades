@@ -8,11 +8,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
@@ -130,7 +128,7 @@ public class Task extends Service implements Runnable
 	public List<Object> getLog()
 	{
 		this.lock.lock();
-		LinkedList<Object> out = new LinkedList<Object>(this.log);
+		LinkedList<Object> out = new LinkedList<>(this.log);
 		this.lock.unlock();
 		return out;
 	}
@@ -213,7 +211,7 @@ public class Task extends Service implements Runnable
 		Os.debug("Task: onCreate");
 		super.onCreate();
 
-		this.log    = new LinkedList<Object>();
+		this.log    = new LinkedList<>();
 		this.lock   = new ReentrantLock();
 		this.client = new Client();
 		this.prefs  = PreferenceManager.getDefaultSharedPreferences(this);

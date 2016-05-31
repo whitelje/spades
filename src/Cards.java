@@ -152,7 +152,7 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		this.pile  = "Ah Ac Ad".split(" ");
 		this.turn  = "";
 
-		this.index = new HashMap<String,Integer>(52);
+		this.index = new HashMap<>(52);
 		for (int i = 0; i < 52; i++)
 			this.index.put(this.cards[i], i);
 
@@ -407,7 +407,7 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 			if (this.drag) {
 				float pct = (float)(i+0.5) / num;
 				float err = this.xpos - pct;
-				float y   = (float)this.ypos / this.ylim;
+				float y   = this.ypos / this.ylim;
 				float lim = Math.min(Math.max(y,0),1);
 				float fcn = 0.1f
 					* (float)Math.exp(-10*num*Math.pow(y*err,2))

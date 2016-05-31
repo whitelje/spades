@@ -11,7 +11,7 @@ public class Client
 		SETUP,
 		READY,
 		ABORT,
-	};
+	}
 
 	/* Preference data */
 	public  String         server   = "irc.freenode.net";
