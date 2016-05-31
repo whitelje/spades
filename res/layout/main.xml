@@ -31,7 +31,7 @@
 					<TextView
 						android:id="@+id/log"
 						android:layout_width="fill_parent"
-						android:layout_height="fill_parent" />
+						android:layout_height="wrap_content" />
 				</ScrollView>
 				<LinearLayout
 					android:orientation="horizontal"
@@ -39,22 +39,23 @@
 					android:layout_height="wrap_content">
 					<EditText
 						android:id="@+id/input"
-						android:layout_width="wrap_content"
-						android:layout_height="fill_parent"
-						android:layout_weight="1" />
+						android:layout_width="0dip"
+						android:layout_height="wrap_content"
+						android:layout_weight="1"
+						android:inputType="textCapSentences|textMultiLine"/>
 					<Button
 						android:id="@+id/connect"
 						android:layout_width="wrap_content"
 						android:layout_height="fill_parent"
 						android:onClick="onConnect"
-						android:text="Connect" />
+						android:text="@string/connect" />
 					<Button
 						android:id="@+id/send"
 						android:visibility="gone"
 						android:layout_width="wrap_content"
 						android:layout_height="fill_parent"
 						android:onClick="onSend"
-						android:text="Send" />
+						android:text="@string/send" />
 				</LinearLayout>
 			</LinearLayout>
 			<LinearLayout
@@ -66,7 +67,7 @@
 					android:id="@+id/spades_text"
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
-					android:text="Spades" />
+					android:text="@string/app_name" />
 			</LinearLayout>
 			<ScrollView
 				android:id="@+id/debug_scroll"
@@ -77,7 +78,7 @@
 				<TextView
 					android:id="@+id/debug"
 					android:layout_width="fill_parent"
-					android:layout_height="fill_parent" />
+					android:layout_height="wrap_content" />
 			</ScrollView>
 		</FrameLayout>
 	</LinearLayout>
