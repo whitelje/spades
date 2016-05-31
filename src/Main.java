@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -228,23 +229,22 @@ public class Main extends Activity
 		}
 	}
 
-	private void sendNotification(Message msg) {
-		if(isRegistering() || isForeground())
+	private void sendNotification(Message msg)
+	{
+		if (isRegistering() || isForeground())
 			return;
-		if(cards.turn.startsWith(PreferenceManager
-				.getDefaultSharedPreferences(this)
-				.getString("pref_nickname", "rhawk").substring(0,4)) &&
-				msg.from.equals(PreferenceManager
-						.getDefaultSharedPreferences(this)
-						.getString("pref_referee", "rhawk"))) {
+		if (!cards.turn.equals(game.player))
+			return;
+		if (!msg.from.equals(game.admin))
+			return;
 
-			Intent        intent = new Intent(this, Main.class);
-			PendingIntent pend   = PendingIntent.getActivity(this, 0, intent, 0);
+		Intent        intent = new Intent(this, Main.class);
+		PendingIntent pend   = PendingIntent.getActivity(this, 0, intent, 0);
 
-			NotificationManager notificationManager =
-					(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+		NotificationManager notificationManager =
+				(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-			Notification.Builder nb = new Notification.Builder(this)
+		Notification.Builder nb = new Notification.Builder(this)
 				.setContentText("Spades!")
 				.setContentTitle("It is your turn!")
 				.setSmallIcon(R.drawable.icon)
@@ -252,8 +252,7 @@ public class Main extends Activity
 				.setAutoCancel(true)
 				.setDefaults(Notification.DEFAULT_ALL);
 
-			notificationManager.notify(2, nb.build());
-		}
+		notificationManager.notify(2, nb.build());
 	}
 
 	private void onNotify(String text)
@@ -370,9 +369,9 @@ public class Main extends Activity
 				.setContent(R.id.debug));
 
 		// Setup Spades game and cards view
-		this.game  = new Spades(PreferenceManager
-				.getDefaultSharedPreferences(this)
-				.getString("pref_referee", "rhawk"));
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		this.game  = new Spades(sp.getString("pref_referee", "rhawk"),
+				sp.getString("pref_nickname", "rhawk"));
 		this.cards = new Cards(this);
 
 		this.game.cards = this.cards;

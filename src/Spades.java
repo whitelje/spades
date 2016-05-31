@@ -7,6 +7,7 @@ public class Spades
 	public  Cards   cards;
 	public  String  admin;
 	public  boolean look;
+	public  String  player;
 
 	/* Static methods */
 	private static String[] getCards(String msg, String regex)
@@ -23,9 +24,10 @@ public class Spades
 	}
 
 	/* Widget callback functions */
-	public Spades(String admin)
+	public Spades(String admin, String player)
 	{
-		this.admin = admin;
+		this.admin  = admin;
+		this.player = player;
 	}
 
 	/* IRC Callbacks */
@@ -61,6 +63,10 @@ public class Spades
 			this.cards.state = txt.replaceAll("it is your (\\w+)!", "$1");
 			this.cards.requestRender();
 		}
+		if (txt.matches(".*playing for.*")) {
+			this.player = txt.replaceAll(".* playing for (\\w+)", "$1");
+			Os.debug("Spades: onMessage - player: " + this.player);
+		}
 	}
 
 	/* UI Callbacks */
@@ -69,6 +75,7 @@ public class Spades
 		Os.debug("Spades: onConnect");
 		this.send(this.admin, ".status");
 		this.send(this.admin, ".turn");
+		this.send(this.admin, ".whoami");
 		this.look = true;
 		return true;
 	}
