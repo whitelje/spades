@@ -56,7 +56,7 @@ public class Spades
 			this.cards.state = txt.replaceAll("It is (\\w+)'s (\\w+)!.*", "$2");
 			this.cards.requestRender();
 		}
-		if (txt.startsWith("it is your") && msg.to != "") {
+		if (txt.startsWith("it is your") && !msg.to.isEmpty()) {
 			this.cards.turn  = msg.to;
 			this.cards.state = txt.replaceAll("it is your (\\w+)!", "$1");
 			this.cards.requestRender();

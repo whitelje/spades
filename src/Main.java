@@ -94,7 +94,7 @@ public class Main extends Activity
 		String text = String.format("(%s) %s: %s\n", date, msg.from, msg.msg);
 		Spannable span = new SpannableString(text);
 
-		// Determin positions
+		// Determine positions
 		int de  = 1 + date.length() + 1;
 		int ne  = de + 1 + msg.from.length() + 1;
 		int pos = ne + 1;
@@ -119,7 +119,7 @@ public class Main extends Activity
 			else if (fmt.italic)
 				span.setSpan(new StyleSpan(Typeface.ITALIC), pos, pos+len, 0);
 
-			// Striketrough / underline
+			// Strikethrough / underline
 			if (fmt.strike)
 				span.setSpan(new StrikethroughSpan(), pos, pos+len, 0);
 			if (fmt.underline)
@@ -213,8 +213,8 @@ public class Main extends Activity
 		}
 
 		// Update title
-		if (this.cards.turn  != null && this.cards.turn  != "" &&
-		    this.cards.state != null && this.cards.state != "") {
+		if (this.cards.turn  != null && !this.cards.turn.isEmpty() &&
+		    this.cards.state != null && !this.cards.state.isEmpty()) {
 			this.setTitle("Spades - " + this.cards.turn + "'s " + this.cards.state);
 		}
 	}
