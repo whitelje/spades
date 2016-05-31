@@ -327,7 +327,7 @@ public class Cards extends GLSurfaceView implements GLSurfaceView.Renderer
 		int id = 0;
 		try {
 			id = R.drawable.class.getField(name).getInt(null);
-		} catch(Exception e) {
+		} catch(IllegalAccessException | NoSuchFieldException e) {
 			Os.debug("Cards: lookup failed for '" + name + "'", e);
 			return 0;
 		}

@@ -14,6 +14,7 @@ import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Messenger;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
 
 public class Task extends Service implements Runnable
@@ -46,7 +47,7 @@ public class Task extends Service implements Runnable
 			msg.what = cmd;
 			msg.obj  = value;
 			this.messenger.send(msg);
-		} catch (Exception e) {
+		} catch (RemoteException e) {
 			Os.debug("Task: error sending message", e);
 		}
 	}
@@ -99,7 +100,7 @@ public class Task extends Service implements Runnable
 			try {
 				this.client.abort();
 				this.thread.join();
-			} catch (Exception e) {
+			} catch (InterruptedException e) {
 				Os.debug("Task: error stopping service", e);
 			}
 		}

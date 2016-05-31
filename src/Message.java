@@ -62,7 +62,7 @@ public class Message
 		{
 			try {
 				return (Format)super.clone();
-			} catch (Exception e) {
+			} catch (CloneNotSupportedException e) {
 				return null;
 			}
 		}

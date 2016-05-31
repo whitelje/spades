@@ -238,7 +238,6 @@ public class Main extends Activity
 						.getDefaultSharedPreferences(this)
 						.getString("pref_referee", "rhawk"))) {
 
-
 			Intent        intent = new Intent(this, Main.class);
 			PendingIntent pend   = PendingIntent.getActivity(this, 0, intent, 0);
 
@@ -324,71 +323,65 @@ public class Main extends Activity
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
-		try {
-			super.onCreate(savedInstanceState);
-			Os.debug("Main: onCreate");
+		super.onCreate(savedInstanceState);
+		Os.debug("Main: onCreate");
 
-			// Setup preferences
-			PreferenceManager.setDefaultValues(this, R.xml.prefs, false);
+		// Setup preferences
+		PreferenceManager.setDefaultValues(this, R.xml.prefs, false);
 
-			// Setup main layout
-			this.setContentView(R.layout.main);
+		// Setup main layout
+		this.setContentView(R.layout.main);
 
-			// Setup toast
-			this.toast     = Toast.makeText(this, "", Toast.LENGTH_SHORT);
+		// Setup toast
+		this.toast     = Toast.makeText(this, "", Toast.LENGTH_SHORT);
 
-			// Setup communication
-			this.handler   = new MainHandler();
-			this.messenger = new Messenger(this.handler);
+		// Setup communication
+		this.handler   = new MainHandler();
+		this.messenger = new Messenger(this.handler);
 
-			// Find widgets
-			this.window    = (TabHost)      findViewById(android.R.id.tabhost);
-			this.tabs      = (TabWidget)    findViewById(android.R.id.tabs);
-			this.chat      = (LinearLayout) findViewById(R.id.chat);
-			this.log       = (TextView)     findViewById(R.id.log);
-			this.input     = (EditText)     findViewById(R.id.input);
-			this.connect   = (Button)       findViewById(R.id.connect);
-			this.send      = (Button)       findViewById(R.id.send);
-			this.spades    = (LinearLayout) findViewById(R.id.spades);
-			this.debug     = (TextView)     findViewById(R.id.debug);
+		// Find widgets
+		this.window    = (TabHost)      findViewById(android.R.id.tabhost);
+		this.tabs      = (TabWidget)    findViewById(android.R.id.tabs);
+		this.chat      = (LinearLayout) findViewById(R.id.chat);
+		this.log       = (TextView)     findViewById(R.id.log);
+		this.input     = (EditText)     findViewById(R.id.input);
+		this.connect   = (Button)       findViewById(R.id.connect);
+		this.send      = (Button)       findViewById(R.id.send);
+		this.spades    = (LinearLayout) findViewById(R.id.spades);
+		this.debug     = (TextView)     findViewById(R.id.debug);
 
-			this.lscroll   = (ScrollView)   findViewById(R.id.log_scroll);
-			this.dscroll   = (ScrollView)   findViewById(R.id.debug_scroll);
+		this.lscroll   = (ScrollView)   findViewById(R.id.log_scroll);
+		this.dscroll   = (ScrollView)   findViewById(R.id.debug_scroll);
 
-			// Add window tabs
-			this.window.setup();
+		// Add window tabs
+		this.window.setup();
 
-			this.window.addTab(this.window
-					.newTabSpec("chat")
-					.setIndicator("Chat")
-					.setContent(R.id.chat));
-			this.window.addTab(this.window
-					.newTabSpec("spades")
-					.setIndicator("Spades")
-					.setContent(R.id.spades));
-			this.window.addTab(this.window
-					.newTabSpec("debug")
-					.setIndicator("Debug")
-					.setContent(R.id.debug));
+		this.window.addTab(this.window
+				.newTabSpec("chat")
+				.setIndicator("Chat")
+				.setContent(R.id.chat));
+		this.window.addTab(this.window
+				.newTabSpec("spades")
+				.setIndicator("Spades")
+				.setContent(R.id.spades));
+		this.window.addTab(this.window
+				.newTabSpec("debug")
+				.setIndicator("Debug")
+				.setContent(R.id.debug));
 
-			// Setup Spades game and cards view
-			this.game  = new Spades(PreferenceManager
-					.getDefaultSharedPreferences(this)
-					.getString("pref_referee", "rhawk"));
-			this.cards = new Cards(this);
+		// Setup Spades game and cards view
+		this.game  = new Spades(PreferenceManager
+				.getDefaultSharedPreferences(this)
+				.getString("pref_referee", "rhawk"));
+		this.cards = new Cards(this);
 
-			this.game.cards = this.cards;
-			this.cards.game = this.game;
+		this.game.cards = this.cards;
+		this.cards.game = this.game;
 
-			this.spades.addView(cards);
+		this.spades.addView(cards);
 
-			// Attach to background service
-			this.register();
-
-		} catch (Exception e) {
-			Os.debug("Error setting content view", e);
-			return;
-		}
+		// Attach to background service
+		this.register();
 	}
 
 	@Override

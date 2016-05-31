@@ -75,7 +75,7 @@ public class Client
 			this.socket.connect(new InetSocketAddress(this.server, this.port));
 			this.input  = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
 			this.output = new PrintWriter(this.socket.getOutputStream());
-		} catch (Exception e) {
+		} catch (IOException e) {
 			Os.debug("Client: failed to create connection: " + e);
 			return false;
 		}
@@ -104,16 +104,12 @@ public class Client
 
 	public void raw(String line)
 	{
-		try {
-			if (this.validate() != State.SETUP &&
-			    this.validate() != State.READY)
-				return;
-			Os.debug("< " + line);
-			this.output.println(line);
-			this.output.flush();
-		} catch (Exception e) {
-			Os.debug("Client: error writing line", e);
-		}
+		if (this.validate() != State.SETUP &&
+		    this.validate() != State.READY)
+			return;
+		Os.debug("< " + line);
+		this.output.println(line);
+		this.output.flush();
 	}
 
 	public Message send(String dst, String txt)
@@ -166,7 +162,7 @@ public class Client
 			this.state = State.INIT;
 			return null;
 		}
-		catch (Exception e) {
+		catch (IOException e) {
 			this.state = State.INIT;
 			Os.debug("Client: error in recv", e);
 			return null;
@@ -183,7 +179,7 @@ public class Client
 					this.state = State.INIT;
 				}
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			Os.debug("Client: error closing socket", e);
 		}
 		return this.state;
