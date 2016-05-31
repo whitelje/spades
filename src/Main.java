@@ -1,8 +1,11 @@
 package org.pileus.spades;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -55,6 +58,8 @@ public class Main extends Activity
 
 	private ScrollView   lscroll;
 	private ScrollView   dscroll;
+	private boolean registering = false;
+	private boolean foreground = true;
 
 	/* Private helper methods */
 	private int hsv2rgb(int hsv)
@@ -166,6 +171,7 @@ public class Main extends Activity
 	private void onRegister(Task task)
 	{
 		Os.debug("Main: onRegister");
+		registering = true;
 		this.task      = task;
 		this.game.task = task;
 		this.update(this.task.isRunning());
@@ -178,6 +184,8 @@ public class Main extends Activity
 				this.onMessage((Message)obj);
 		}
 		this.scroll();
+		registering = false;
+		cards.requestRender();
 	}
 
 	private void onMessage(Message msg)
@@ -190,6 +198,7 @@ public class Main extends Activity
 			case PRIVMSG:
 				this.display(msg);
 				this.game.onMessage(msg);
+				sendNotification(msg);
 				break;
 			case TOPIC:
 				if (!msg.txt.equals(this.topic))
@@ -216,6 +225,35 @@ public class Main extends Activity
 		if (this.cards.turn  != null && !this.cards.turn.isEmpty() &&
 		    this.cards.state != null && !this.cards.state.isEmpty()) {
 			this.setTitle("Spades - " + this.cards.turn + "'s " + this.cards.state);
+		}
+	}
+
+	private void sendNotification(Message msg) {
+		if(isRegistering() || isForeground())
+			return;
+		if(cards.turn.startsWith(PreferenceManager
+				.getDefaultSharedPreferences(this)
+				.getString("pref_nickname", "rhawk").substring(0,4)) &&
+				msg.from.equals(PreferenceManager
+						.getDefaultSharedPreferences(this)
+						.getString("pref_referee", "rhawk"))) {
+
+
+			Intent        intent = new Intent(this, Main.class);
+			PendingIntent pend   = PendingIntent.getActivity(this, 0, intent, 0);
+
+			NotificationManager notificationManager =
+					(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+			Notification.Builder nb = new Notification.Builder(this)
+				.setContentText("Spades!")
+				.setContentTitle("It is your turn!")
+				.setSmallIcon(R.drawable.icon)
+				.setContentIntent(pend)
+				.setAutoCancel(true)
+				.setDefaults(Notification.DEFAULT_ALL);
+
+			notificationManager.notify(2, nb.build());
 		}
 	}
 
@@ -365,6 +403,7 @@ public class Main extends Activity
 	public void onResume()
 	{
 		super.onResume();
+		foreground = true;
 		Os.debug("Main: onResume");
 	}
 
@@ -372,6 +411,7 @@ public class Main extends Activity
 	public void onPause()
 	{
 		super.onPause();
+		foreground = false;
 		Os.debug("Main: onPause");
 	}
 
@@ -431,6 +471,14 @@ public class Main extends Activity
 			default:
 				return false;
 		}
+	}
+
+	public boolean isRegistering() {
+		return registering;
+	}
+
+	public boolean isForeground() {
+		return foreground;
 	}
 
 	/* Handler class */
